@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="راهنمای تعاملی سیستم دسته‌بندی هزینه‌های شخصی تک‌نفره — صندوق‌های دوره‌ای، صندوق اضطراری و قاعده ۵۰/۳۰/۲۰">
+<title>سیستم بودجه شخصی — تک‌نفره</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🫙</text></svg>">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
+<style>
+:root{
+  --bg:#f2f6f5; --surface:#ffffff; --ink:#16323a; --muted:#5f7a80; --line:#dfe9e6;
+  --primary:#0e7c66; --primary-2:#0a5f4e; --primary-soft:#e3f4ef;
+  --needs:#2563eb; --needs-soft:#e7eefc;
+  --wants:#d97706; --wants-soft:#fdf1e0;
+  --savings:#059669; --savings-soft:#e2f6ee;
+  --danger:#dc2626; --danger-soft:#fdeaea;
+  --r:14px; --sh:0 1px 3px rgba(22,50,58,.07),0 6px 18px rgba(22,50,58,.05);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:Vazirmatn,Tahoma,'Segoe UI',sans-serif;
+  font-size:15.5px; line-height:1.9;
+}
+.wrap{max-width:1080px;margin:0 auto;padding:0 18px}
+h1,h2,h3{line-height:1.6;margin:0 0 8px}
+p{margin:0 0 10px}
+a{color:var(--primary);text-decoration:none}
+a:hover{text-decoration:underline}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- سربرگ ---------- */
+.hero{
+  background:linear-gradient(135deg,#0a5f4e,#0e7c66 55%,#11967c);
+  color:#fff; padding:34px 0 26px;
+}
+.hero h1{font-size:1.65rem;font-weight:800}
+.hero p{opacity:.92;max-width:640px;margin:0}
+.hero-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.hero-chips span{
+  background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);
+  padding:3px 12px;border-radius:999px;font-size:.82rem;
+}
+.topbar{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.bar-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0}
+.brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:1.02rem;white-space:nowrap}
+.brand .logo{font-size:1.35rem}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:6px 0 10px;scrollbar-width:thin}
+.tab{
+  white-space:nowrap;border:1px solid var(--line);background:#fff;color:var(--muted);
+  padding:6px 14px;border-radius:999px;font:inherit;font-size:.88rem;cursor:pointer;transition:.15s;
+}
+.tab:hover{border-color:var(--primary);color:var(--primary)}
+.tab.on{background:var(--primary);border-color:var(--primary);color:#fff}
+.controls{display:flex;align-items:center;gap:10px}
+.seg{display:inline-flex;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px}
+.seg button{
+  border:0;background:transparent;padding:4px 12px;border-radius:8px;
+  font:inherit;font-size:.85rem;cursor:pointer;color:var(--muted);transition:.15s;
+}
+.seg button.on{background:var(--primary);color:#fff}
+.btn{
+  border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;
+  padding:6px 14px;font:inherit;font-size:.86rem;cursor:pointer;transition:.15s;
+}
+.btn:hover{border-color:var(--danger);color:var(--danger)}
+.btn.arm{background:var(--danger);border-color:var(--danger);color:#fff}
+
+/* ---------- بخش‌ها ---------- */
+main{padding:26px 0 10px}
+.panel{display:none}
+.panel.active{display:block;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.panel > .wrap > h2{font-size:1.3rem;font-weight:800}
+.lead{color:var(--muted);max-width:760px}
+.card{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  box-shadow:var(--sh);padding:18px 20px;margin:14px 0;
+}
+.card h3{font-size:1.05rem;font-weight:700}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.hint{font-size:.85rem;color:var(--muted)}
+
+/* ورودی مبلغ */
+.amt{
+  display:flex;align-items:center;gap:8px;background:#fff;border:1.5px solid var(--line);
+  border-radius:12px;padding:8px 14px;transition:.15s;
+}
+.amt:focus-within{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
+.amt input{
+  border:0;outline:0;flex:1;min-width:0;font:inherit;font-size:1.05rem;font-weight:700;
+  background:transparent;color:var(--ink);text-align:right;
+}
+.amt .unit{color:var(--muted);font-size:.82rem;white-space:nowrap}
+.amt.lg input{font-size:1.3rem}
+
+/* شاخص‌ها */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;box-shadow:var(--sh)}
+.kpi .l{font-size:.82rem;color:var(--muted)}
+.kpi .v{font-size:1.25rem;font-weight:800;margin-top:2px}
+.kpi .s{font-size:.78rem;color:var(--muted)}
+.kpi .v.neg{color:var(--danger)}
+.kpi .v.pos{color:var(--savings)}
+
+/* دسته‌ها */
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0 4px}
+.dot{display:inline-flex;align-items:center;gap:6px;font-size:.84rem;color:var(--muted)}
+.dot i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.cats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:12px;margin-top:14px}
+.cat-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;box-shadow:var(--sh);position:relative}
+.cat-card .head{display:flex;align-items:flex-start;gap:10px}
+.cat-card .ico{font-size:1.5rem;line-height:1.2}
+.cat-card .name{font-weight:700;font-size:.98rem}
+.cat-card .items{font-size:.78rem;color:var(--muted);margin:2px 0 10px;min-height:2.2em}
+.bchip{
+  font-size:.7rem;padding:1px 10px;border-radius:999px;white-space:nowrap;
+}
+.b-needs{background:var(--needs-soft);color:var(--needs)}
+.b-wants{background:var(--wants-soft);color:var(--wants)}
+.b-savings{background:var(--savings-soft);color:var(--savings)}
+.pct-line{font-size:.76rem;color:var(--muted);margin-top:6px;min-height:1.2em}
+.sumbar{
+  position:sticky;bottom:10px;background:var(--primary-soft);border:1px solid #bfe5da;
+  border-radius:var(--r);padding:10px 16px;display:flex;flex-wrap:wrap;gap:6px 26px;
+  align-items:center;box-shadow:var(--sh);margin-top:16px;font-size:.9rem;
+}
+.sumbar b{font-size:1rem}
+
+/* صندوق‌های دوره‌ای */
+.fund-head,.fund-row{
+  display:grid;grid-template-columns:1.3fr 1.2fr 1fr 40px;gap:10px;align-items:center;
+}
+.fund-head{font-size:.8rem;color:var(--muted);padding:0 4px 6px;border-bottom:1px solid var(--line)}
+.fund-row{padding:10px 4px;border-bottom:1px solid var(--line)}
+.fund-row .f-name{
+  border:1px solid var(--line);border-radius:10px;padding:7px 12px;font:inherit;
+  background:#fff;outline:0;width:100%;color:var(--ink);
+}
+.fund-row .f-name:focus{border-color:var(--primary)}
+.f-monthly{font-weight:800;color:var(--primary);font-size:1rem}
+.f-del{
+  border:0;background:var(--danger-soft);color:var(--danger);border-radius:9px;
+  width:34px;height:34px;font-size:1.1rem;cursor:pointer;transition:.15s;
+}
+.f-del:hover{background:var(--danger);color:#fff}
+.funds-total{display:flex;flex-wrap:wrap;gap:6px 24px;align-items:baseline;margin-top:14px;font-size:.92rem}
+.funds-total b{font-size:1.2rem;color:var(--primary)}
+.btn-add{
+  border:1.5px dashed var(--primary);background:var(--primary-soft);color:var(--primary-2);
+  border-radius:12px;padding:9px 18px;font:inherit;font-weight:700;cursor:pointer;margin-top:12px;transition:.15s;
+}
+.btn-add:hover{background:#d3ece4}
+.okchip{background:var(--savings-soft);color:var(--savings);border-radius:999px;padding:2px 12px;font-size:.8rem}
+.warnchip{background:var(--wants-soft);color:var(--wants);border-radius:999px;padding:2px 12px;font-size:.8rem}
+
+/* هشدارها */
+.alert{border-radius:12px;padding:12px 16px;border:1px solid;margin:12px 0;display:flex;gap:10px;align-items:flex-start;font-size:.92rem}
+.alert .a-ico{font-size:1.15rem;line-height:1.6}
+.alert.info{background:var(--primary-soft);border-color:#bfe5da;color:#0a5f4e}
+.alert.warn{background:#fff8ec;border-color:#f2ddb0;color:#8a5a00}
+.alert.danger{background:var(--danger-soft);border-color:#f3c1c1;color:#991b1b}
+
+/* صندوق اضطراری */
+.em-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px;margin-top:8px}
+.bar{height:12px;background:var(--line);border-radius:999px;overflow:hidden;margin:8px 0 4px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#11967c,var(--primary));border-radius:999px;transition:width .35s}
+.em-big{font-size:1.5rem;font-weight:800}
+input[type=range]{width:100%;accent-color:var(--primary);cursor:pointer}
+.range-line{display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted)}
+.checkline{display:flex;align-items:center;gap:8px;font-size:.9rem;margin:8px 0}
+input[type=checkbox]{width:18px;height:18px;accent-color:var(--primary);cursor:pointer}
+.hidden{display:none!important}
+
+/* قاعده ۵۰/۳۰/۲۰ */
+.rule-row{display:grid;grid-template-columns:120px 1fr 90px 130px;gap:12px;align-items:center;padding:10px 0;border-bottom:1px dashed var(--line)}
+.rule-row .lbl{display:flex;align-items:center;gap:8px;font-weight:700;font-size:.92rem}
+.rule-row .lbl i{width:11px;height:11px;border-radius:50%;display:inline-block}
+.rule-row .amt-o{font-weight:800;text-align:left}
+.cmp-wrap{display:flex;gap:16px;align-items:flex-start}
+.donut-box{position:relative;width:230px;flex:0 0 auto;margin:0 auto}
+.donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.donut-center .t{font-size:.72rem;color:var(--muted)}
+.donut-center .v{font-weight:800;font-size:1.05rem}
+.donut-legend{flex:1;min-width:230px}
+.dl-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px dashed var(--line);font-size:.9rem}
+.tbl{width:100%;border-collapse:collapse;margin-top:10px}
+.tbl th,.tbl td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:right;font-size:.9rem}
+.tbl th{color:var(--muted);font-weight:700;font-size:.82rem}
+.delta{font-size:.78rem;border-radius:999px;padding:1px 10px;white-space:nowrap}
+.delta.pos{background:var(--savings-soft);color:var(--savings)}
+.delta.neg{background:var(--danger-soft);color:var(--danger)}
+.delta.zero{background:var(--bg);color:var(--muted)}
+
+/* معماری حساب‌ها */
+.flow{display:grid;gap:0;justify-items:center;margin-top:6px}
+.flow-row{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;width:100%}
+.node{
+  border:1.5px solid var(--line);border-radius:var(--r);padding:12px 18px;background:#fff;
+  cursor:pointer;min-width:180px;text-align:center;transition:.15s;box-shadow:var(--sh);
+}
+.node:hover{border-color:var(--primary)}
+.node.on{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
+.node .n-ico{font-size:1.5rem}
+.node .n-t{font-weight:800;font-size:.92rem;margin-top:2px}
+.node .n-s{font-size:.74rem;color:var(--muted)}
+.node.income-node{background:var(--primary);border-color:var(--primary);color:#fff}
+.node.income-node .n-s{color:rgba(255,255,255,.85)}
+.arrows{color:var(--muted);font-size:1.25rem;line-height:1.4;margin:2px 0}
+.acc-detail{margin-top:14px}
+.acc-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.acc-chips span{background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:2px 12px;font-size:.8rem;color:var(--muted)}
+
+/* رویکرد */
+.appr-tbl td.hl{background:var(--primary-soft);font-weight:700}
+
+/* گام‌ها */
+.step{display:flex;gap:12px;align-items:flex-start;padding:13px 4px;border-bottom:1px dashed var(--line)}
+.step:last-of-type{border-bottom:0}
+.step .s-amt{margin-right:auto;text-align:left;white-space:nowrap;font-weight:800}
+.step .s-amt small{display:block;font-weight:400;color:var(--muted);font-size:.72rem}
+.step.done .s-t{text-decoration:line-through;color:var(--muted)}
+.step .s-t{font-weight:700;font-size:.96rem}
+.step .s-d{font-size:.8rem;color:var(--muted)}
+.steps-bar{display:flex;flex-wrap:wrap;gap:6px 22px;align-items:center;margin-top:12px}
+.steps-bar b{color:var(--primary)}
+
+/* جمع‌بندی */
+.pill-list{list-style:none;padding:0;margin:10px 0}
+.pill-list li{padding:7px 0;border-bottom:1px dashed var(--line);display:flex;gap:10px}
+.pill-list li:last-child{border-bottom:0}
+.src-list{list-style:none;padding:0;margin:8px 0}
+.src-list li{padding:7px 0;border-bottom:1px dashed var(--line)}
+.src-list a{direction:ltr;unicode-bidi:isolate;display:inline-block;font-size:.85rem}
+
+footer{border-top:1px solid var(--line);margin-top:26px;padding:18px 0 26px;color:var(--muted);font-size:.83rem}
+
+@media (max-width:840px){
+  .grid2,.grid3,.em-grid,.cmp-wrap{grid-template-columns:1fr;display:grid}
+  .kpis{grid-template-columns:1fr 1fr}
+  .rule-row{grid-template-columns:1fr;gap:6px}
+  .rule-row .amt-o{text-align:right}
+  .fund-head{display:none}
+  .fund-row{grid-template-columns:1fr 1fr;gap:8px}
+  .fund-row .f-name{grid-column:1/-1}
+  .bar-row{flex-wrap:wrap}
+}
+/* دکمه چاپ هر بخش */
+.sec-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:2px}
+.pbtn{
+  border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:9px;
+  padding:4px 12px;font:inherit;font-size:.8rem;cursor:pointer;transition:.15s;white-space:nowrap;
+}
+.pbtn:hover{border-color:var(--primary);color:var(--primary)}
+#print-summary{display:none}
+.print-head{display:none}
+
+/* ────────────── چاپ A4 ────────────── */
+@page{size:A4;margin:11mm 10mm}
+@media print{
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  html{scroll-behavior:auto}
+  body{background:#fff;font-size:9.5pt;line-height:1.75}
+  .hero,.topbar,.pbtn,.btn-add,.f-del,.fund-head{display:none!important}
+  .no-print{display:none!important}
+  .card,.kpi,.node,.fund-row,.step,.cat-card,.alert{box-shadow:none;break-inside:avoid}
+  .sumbar{position:static;break-inside:avoid}
+  .cats-grid{grid-template-columns:repeat(2,1fr)}
+  .grid2,.grid3,.kpis{grid-template-columns:repeat(2,1fr)}
+  /* حالت چاپ تک‌بخش */
+  body.printing .panel{display:none!important}
+  body.printing .panel.print-this{display:block!important}
+  /* چاپ کامل — هر بخش از صفحه جدید */
+  body.printing-all .panel{display:block!important;break-before:page}
+  body.printing-all .panel:first-of-type{break-before:auto}
+  /* خلاصه یک‌صفحه‌ای */
+  body.printing-sum .panel{display:none!important}
+  body.printing-sum #print-summary{display:block!important;break-inside:avoid}
+  /* سربرگ چاپ */
+  body.printing .print-head,body.printing-all .print-head{
+    display:flex;justify-content:space-between;align-items:baseline;
+    border-bottom:2px solid var(--primary);padding-bottom:3px;margin-bottom:10px;
+    font-size:.82rem;color:var(--muted);
+  }
+  /* قالب فشرده خلاصه */
+  #print-summary{font-size:8.6pt;line-height:1.65}
+  #print-summary h2{font-size:13pt;margin:0 0 2px}
+  #print-summary h3{font-size:9.6pt;margin:8px 0 3px;color:var(--primary-2)}
+  #print-summary .sum-head{border-bottom:2px solid var(--primary);padding-bottom:5px;margin-bottom:6px}
+  #print-summary .sum-meta{font-size:8pt;color:var(--muted)}
+  #print-summary .sum-top{display:flex;gap:12px;align-items:center;margin:6px 0}
+  #print-summary .sum-kpis{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;flex:1}
+  #print-summary .sum-kpi{border:1px solid var(--line);border-radius:8px;padding:3px 8px;display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+  #print-summary .sum-kpi b{font-size:9.4pt}
+  #print-summary .sum-donut{text-align:center}
+  #print-summary .sum-legend{font-size:7.4pt;color:var(--muted)}
+  #print-summary table{width:100%;border-collapse:collapse}
+  #print-summary th,#print-summary td{border-bottom:1px solid var(--line);padding:2.2px 6px;text-align:right;font-size:8.4pt}
+  #print-summary thead th{color:var(--muted);font-size:7.6pt}
+  #print-summary .sumrow th{border-top:1.5px solid var(--muted);font-size:8.4pt}
+  #print-summary .sum-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+  #print-summary .sum-inv{margin:8px 0 0;font-size:9pt;border:1.2pt dashed var(--primary);border-radius:8px;padding:4px 10px;background:var(--primary-soft)}
+  #print-summary .sum-foot{margin:6px 0 0;font-size:7.4pt;color:var(--muted);text-align:center}
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <h1>🫙 سیستم دسته‌بندی هزینه‌های فردی — تک‌نفره</h1>
+    <p>راهنمای تعاملی برای دسته‌بندی هزینه‌ها، ساختن صندوق‌های دوره‌ای، تأمین صندوق اضطراری و تخصیص اصولی درآمد. همه محاسبات همین‌جا در مرورگر شما انجام و ذخیره می‌شود.</p>
+    <div class="hero-chips">
+      <span>۱۲ دسته هزینه</span><span>۵ حساب پولی</span><span>۷ گام تخصیص درآمد</span><span>قاعده ۵۰/۳۰/۲۰</span><span>صندوق‌های دوره‌ای</span>
+    </div>
+  </div>
+</header>
+
+<div class="topbar">
+  <div class="wrap">
+    <div class="bar-row">
+      <div class="brand"><span class="logo">🧭</span> بودجه شخصی</div>
+      <div class="controls">
+        <div class="seg" id="cur-seg" role="group" aria-label="انتخاب واحد پول">
+          <button data-cur="toman" class="on">تومان</button>
+          <button data-cur="rial">ریال</button>
+          <button data-cur="dollar">دلار</button>
+        </div>
+        <button class="btn" id="print-sum-btn" type="button">🖨️ چاپ خلاصه (A4)</button>
+        <button class="btn" id="print-all-btn" type="button">🖨️ چاپ کامل</button>
+        <button class="btn" id="reset-btn" type="button">بازنشانی داده‌ها</button>
+      </div>
+    </div>
+    <nav class="tabs" id="tabs" role="tablist" aria-label="بخش‌ها">
+      <button class="tab" data-tab="dash" role="tab">🏠 داشبورد</button>
+      <button class="tab on" data-tab="start" role="tab">۱ · شروع</button>
+      <button class="tab" data-tab="cats" role="tab">۲ · ۱۲ دسته هزینه</button>
+      <button class="tab" data-tab="funds" role="tab">۳ · صندوق‌های دوره‌ای</button>
+      <button class="tab" data-tab="em" role="tab">۴ · صندوق اضطراری</button>
+      <button class="tab" data-tab="rule" role="tab">۵ · قاعده ۵۰/۳۰/۲۰</button>
+      <button class="tab" data-tab="acc" role="tab">۶ · معماری حساب‌ها</button>
+      <button class="tab" data-tab="approach" role="tab">۷ · دو رویکرد</button>
+      <button class="tab" data-tab="steps" role="tab">۸ · هفت گام تخصیص</button>
+      <button class="tab" data-tab="summary" role="tab">۹ · جمع‌بندی</button>
+    </nav>
+  </div>
+</div>
+
+<main>
+
+  <div class="print-head" aria-hidden="true"><b>🫙 سیستم بودجه شخصی — تک‌نفره</b><span class="num" id="print-date"></span></div>
+
+  <!-- ═══════════ داشبورد ═══════════ -->
+  <section class="panel" id="sec-dash" role="tabpanel">
+    <div class="wrap">
+      <h2>🏠 داشبورد — خلاصه همه‌چیز</h2>
+      <p class="lead">نمای کلی وضعیت بودجه شما؛ همه اعداد به‌صورت زنده از بخش‌های دیگر جمع می‌شوند و هر تغییری بلافاصله اینجا دیده می‌شود.</p>
+
+      <div class="kpis">
+        <div class="kpi"><div class="l">درآمد ماهانه</div><div class="v num" id="d-inc">۰</div><div class="s">مبنای همه محاسبات</div></div>
+        <div class="kpi"><div class="l">جمع بودجه ۱۲ دسته</div><div class="v num" id="d-total">۰</div><div class="s" id="d-total-s">—</div></div>
+        <div class="kpi"><div class="l">تعهد ماهانه صندوق‌ها</div><div class="v num" id="d-funds">۰</div><div class="s">مخارج دوره‌ای آینده</div></div>
+        <div class="kpi"><div class="l">باقی‌مانده پس از تخصیص</div><div class="v num" id="d-rest">۰</div><div class="s" id="d-rest-s">—</div></div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <h3>سهم سبدها از درآمد</h3>
+          <div class="cmp-wrap">
+            <div class="donut-box" style="width:175px">
+              <svg id="dash-donut" width="175" height="175" viewBox="0 0 160 160" aria-hidden="true"></svg>
+              <div class="donut-center"><span class="t">درآمد ماهانه</span><span class="v num" id="d-donut-inc">۰</span></div>
+            </div>
+            <div class="donut-legend">
+              <div class="dl-row"><span class="dot"><i style="background:var(--needs)"></i> نیازها</span><b class="num" id="d-lg-needs">۰</b></div>
+              <div class="dl-row"><span class="dot"><i style="background:var(--wants)"></i> خواسته‌ها</span><b class="num" id="d-lg-wants">۰</b></div>
+              <div class="dl-row"><span class="dot"><i style="background:var(--savings)"></i> پس‌انداز</span><b class="num" id="d-lg-save">۰</b></div>
+              <div class="dl-row"><span class="dot"><i style="background:#c8d4d1"></i> تخصیص‌نیافته</span><b class="num" id="d-lg-rest">۰</b></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>🚨 صندوق اضطراری</h3>
+          <p style="margin:0 0 4px">هدف (<b class="num" id="d-em-months">۶</b> ماه پوشش): <b class="num" id="d-em-target">۰</b></p>
+          <div class="bar"><i id="d-em-bar" style="width:0%"></i></div>
+          <div style="display:flex;justify-content:space-between;font-size:.85rem">
+            <span class="num" id="d-em-pct">۰٪</span>
+            <span>موجودی <b class="num" id="d-em-bal">۰</b> · کسری <b class="num" id="d-em-def">۰</b></span>
+          </div>
+          <p class="hint" style="margin:10px 0 0">هزینه ضروری ماهانه: <span class="num" id="d-em-ess">۰</span></p>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <h3>🫙 صندوق‌های دوره‌ای</h3>
+          <table class="tbl"><thead><tr><th>صندوق</th><th>سهم ماهانه</th></tr></thead><tbody id="d-funds-body"></tbody></table>
+          <p class="hint" style="margin:8px 0 0">جمع تعهد ماهانه: <b class="num" id="d-funds-sum">۰</b></p>
+        </div>
+        <div class="card">
+          <h3>⚖️ الگوی ۵۰/۳۰/۲۰ در برابر واقعی</h3>
+          <table class="tbl"><thead><tr><th>سبد</th><th>الگوی شما</th><th>تخصیص واقعی</th></tr></thead><tbody id="d-cmp-body"></tbody></table>
+          <p class="hint" style="margin:8px 0 0">واقعی از جمع دسته‌های بخش ۲ محاسبه می‌شود.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>✅ هفت گام تخصیص درآمد</h3>
+        <div id="d-steps"></div>
+      </div>
+
+      <div class="card">
+        <h3>دسترسی سریع</h3>
+        <div class="acc-chips" id="d-nav" style="margin-top:4px"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ ۱ · شروع ═══════════ -->
+  <section class="panel active" id="sec-start" role="tabpanel">
+    <div class="wrap">
+      <h2>از اینجا شروع کنید</h2>
+      <p class="lead">تعداد استاندارد و ثابتی برای قلک‌ها یا صندوق‌های مالی وجود ندارد؛ روش‌های رایج مانند بودجه‌بندی پاکتی، صندوق‌های نجات و قاعده ۵۰/۳۰/۲۰ همگی از چند سبد مجزا استفاده می‌کنند. پیشنهاد عملی، حدود ۱۰ تا ۱۲ دسته مالی است که در این راهنما پیاده شده.</p>
+
+      <div class="card">
+        <h3>💰 درآمد ماهانه شما</h3>
+        <p class="hint">مبلغی که هر ماه وارد حساب اصلی می‌شود؛ مبنای همه محاسبات این راهنماست.</p>
+        <label class="amt lg">
+          <input id="income-in" type="text" inputmode="numeric" placeholder="مثلاً ۳۰٬۰۰۰٬۰۰۰" aria-label="درآمد ماهانه">
+          <span class="unit">تومان</span>
+        </label>
+      </div>
+
+      <div class="kpis">
+        <div class="kpi"><div class="l">درآمد ماهانه</div><div class="v num" id="k-inc">۰</div><div class="s">مبنای محاسبات</div></div>
+        <div class="kpi"><div class="l">جمع بودجه ۱۲ دسته</div><div class="v num" id="k-cats">۰</div><div class="s" id="k-cats-s">هنوز دسته‌ای پر نشده</div></div>
+        <div class="kpi"><div class="l">تعهد ماهانه صندوق‌ها</div><div class="v num" id="k-funds">۰</div><div class="s">مخارج دوره‌ای آینده</div></div>
+        <div class="kpi"><div class="l">باقی‌مانده اختیاری</div><div class="v num" id="k-rest">۰</div><div class="s" id="k-rest-s">پس از همه تخصیص‌ها</div></div>
+      </div>
+
+      <div class="alert info"><span class="a-ico">🧭</span><div>مسیر پیشنهادی: ابتدا درآمد را وارد کنید، سپس بودجه ۱۲ دسته را تخمین بزنید، صندوق‌های دوره‌ای را بسازید و در پایان با بخش «هفت گام» و «جمع‌بندی» وضعیت نهایی را ببینید. داده‌ها خودکار ذخیره می‌شوند.</div></div>
+    </div>
+  </section>
+
+  <!-- ═══════════ ۲ · دسته‌ها ═══════════ -->
+  <section class="panel" id="sec-cats" role="tabpanel">
+    <div class="wrap">
+      <h2>۱۲ دسته هزینه پیشنهادی</h2>
+      <p class="lead">برای هر دسته، برآورد ماهانه خود را وارد کنید تا جمع کل، سهم هر سبد و درصد از درآمد به‌صورت زنده محاسبه شود. این دسته‌بندی با فرم‌های بودجه‌بندی آموزشی نیز هم‌خوانی دارد.</p>
+      <div class="legend">
+        <span class="dot"><i style="background:var(--needs)"></i> نیازها — ضروری و اجتناب‌ناپذیر</span>
+        <span class="dot"><i style="background:var(--wants)"></i> خواسته‌ها — قابل تنظیم</span>
+        <span class="dot"><i style="background:var(--savings)"></i> پس‌انداز — آینده و ذخایر</span>
+      </div>
+      <div class="cats-grid" id="cats-grid"></div>
+      <div class="sumbar">
+        <span>جمع کل: <b class="num" data-out="sum">۰</b></span>
+        <span>نیازها: <b class="num" style="color:var(--needs)" data-out="needs">۰</b></span>
+        <span>خواسته‌ها: <b class="num" style="color:var(--wants)" data-out="wants">۰</b></span>
+        <span>پس‌انداز: <b class="num" style="color:var(--savings)" data-out="saving">۰</b></span>
+        <span>درصد درآمد: <b class="num" data-out="sumPct">—</b></span>
+        <span>باقی‌مانده از درآمد: <b class="num" data-out="restCats">—</b></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ ۳ · صندوق‌های دوره‌ای ═══════════ -->
+  <section class="panel" id="sec-funds" role="tabpanel">
+    <div class="wrap">
+      <h2>صندوق‌های مخارج پیش‌بینی‌شده</h2>
+      <p class="lead">بهترین روش برای هزینه‌های برنامه‌پذیر آینده، «صندوق مخارج دوره‌ای» است: برای هر هدف، هر ماه مبلغی کنار گذاشته می‌شود — حتی اگر آن ماه خرجی نباشد. سهم ماهانه = هزینه سالانه تقسیم بر ۱۲.</p>
+
+      <div class="alert info"><span class="a-ico">🧮</span><div><b>مثال:</b> اگر سالانه ۱۲ میلیون برای لباس هزینه می‌کنید، ماهانه ۱ میلیون به صندوق لباس واریز می‌کنید تا هزینه فصلی ضربه نزند.</div></div>
+
+      <div class="card">
+        <div class="fund-head"><span>نام صندوق</span><span>هزینه سالانه برآوردی</span><span>سهم ماهانه</span><span></span></div>
+        <div id="funds-list"></div>
+        <button class="btn-add" id="add-fund" type="button">＋ افزودن صندوق جدید</button>
+        <div class="funds-total">
+          <span>تعداد: <b class="num" data-out="fundsCount">۰</b></span>
+          <span>جمع سهم ماهانه: <b class="num" data-out="fundsM">۰</b> <span class="unit">تومان</span></span>
+          <span>جمع هدف سالانه: <b class="num" data-out="fundsY">۰</b> <span class="unit">تومان</span></span>
+        </div>
+        <p style="margin-top:12px"><span id="funds-match"></span></p>
+      </div>
+
+      <div class="alert warn"><span class="a-ico">⚠️</span><div>این صندوق‌ها با «صندوق اضطراری» متفاوت‌اند: خرید لباس، تعمیر برنامه‌ریزی‌شده خودرو و مسافرت، هزینه اضطراری محسوب نمی‌شوند و نباید از ذخیره اضطراری پرداخت شوند.</div></div>
+    </div>
+  </section>
+
+  <!-- ═══════════ ۴ · صندوق اضطراری ═══════════ -->
+  <section class="panel" id="sec-em" role="tabpanel">
+    <div class="wrap">
+      <h2>صندوق اضطراری</h2>
+      <p class="lead">فقط برای اتفاقات غیرمنتظره: بیماری ناگهانی، بیکاری، خرابی جدی خودرو یا خانه. حسابی مجزا، نقدشونده و کم‌ریسک — نه سهام، نه سرمایه‌گذاری پرنوسان.</p>
+
+      <div class="grid2">
+        <div class="card">
+          <h3>هزینه ضروری ماهانه</h3>
+          <p class="hint">مجموع هزینه‌هایی که حتی در سخت‌ترین شرایط باید پرداخت شوند (مسکن، خوراک، حمل‌ونقل، ارتباطات، سلامت و اقساط).</p>
+          <label class="checkline"><input type="checkbox" id="em-auto" checked> محاسبه خودکار از دسته‌های ضروریِ بخش ۲</label>
+          <div id="em-manual-wrap" class="hidden">
+            <label class="amt"><input id="em-manual" type="text" inputmode="numeric" placeholder="مثلاً ۱۸٬۰۰۰٬۰۰۰"><span class="unit">تومان</span></label>
+          </div>
+          <p style="margin-top:10px">مبلغ مبنا: <b class="num" data-out="emEss">۰</b> <span class="unit">تومان</span></p>
+
+          <h3 style="margin-top:18px">چند ماه می‌خواهید پوشش دهد؟</h3>
+          <input type="range" id="em-months" min="3" max="12" step="1" value="6" aria-label="تعداد ماه پوشش">
+          <div class="range-line"><span>۳ ماه</span><span class="num" data-out="emMonths">۶ ماه</span><span>۱۲ ماه</span></div>
+        </div>
+
+        <div class="card">
+          <h3>هدف و پیشرفت</h3>
+          <div class="em-big num" data-out="emTarget">۰ <span class="unit">تومان</span></div>
+          <p class="hint">هدف = هزینه ضروری ماهانه × تعداد ماه</p>
+          <label class="amt" style="margin-top:8px"><input id="em-bal" type="text" inputmode="numeric" placeholder="موجودی فعلی صندوق"><span class="unit">تومان</span></label>
+          <div class="bar"><i id="em-bar" style="width:0%"></i></div>
+          <div style="display:flex;justify-content:space-between;font-size:.85rem">
+            <span class="num" data-out="emPct">۰٪</span>
+            <span>کسری: <b class="num" data-out="emDef">۰</b></span>
+          </div>
+          <div class="alert info" style="margin-bottom:0" id="em-tip"><span class="a-ico">🧭</span><div>توصیه‌های آموزشی معمولاً ۳ تا ۶ ماه هزینه زندگی را مطرح می‌کنند؛ برای درآمدهای متغیر، ذخیره بزرگ‌تر منطقی است.</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ ۵ · قاعده ═══════════ -->
+  <section class="panel" id="sec-rule" role="tabpanel">
+    <div class="wrap">
+      <h2>قاعده ۵۰/۳۰/۲۰</h2>
+      <p class="lead">یک الگوی معروف شروع: ۵۰٪ نیازها، ۳۰٪ خواسته‌ها و ۲۰٪ پس‌انداز و پرداخت بدهی. اما این نسبت‌ها قانون ثابت نیستند — با اسلایدرها متناسب با شرایط خود تنظیمشان کنید.</p>
+
+      <div class="card">
+        <h3>تنظیم الگوی دلخواه</h3>
+        <p class="hint">جمع سه سبد همیشه ۱۰۰٪ می‌ماند؛ مبلغ هر سبد از درآمد بخش «شروع» محاسبه می‌شود.</p>
+        <div id="rule-rows"></div>
+      </div>
+
+      <div class="card">
+        <h3>مقایسه الگو با تخصیص واقعی شما</h3>
+        <p class="hint">«واقعی» از جمع دسته‌های بخش ۲ محاسبه می‌شود (سبد پس‌انداز شامل دسته‌های ۹، ۱۱ و ۱۲ است).</p>
+        <div class="cmp-wrap">
+          <div class="donut-box">
+            <svg id="donut-svg" width="230" height="230" viewBox="0 0 160 160" aria-hidden="true"></svg>
+            <div class="donut-center"><span class="t">درآمد ماهانه</span><span class="v num" data-out="donutInc">۰</span></div>
+          </div>
+          <div class="donut-legend">
+            <div class="dl-row"><span class="dot"><i style="background:var(--needs)"></i> نیازها</span><b class="num" data-out="lgNeeds">۰</b></div>
+            <div class="dl-row"><span class="dot"><i style="background:var(--wants)"></i> خواسته‌ها</span><b class="num" data-out="lgWants">۰</b></div>
+            <div class="dl-row"><span class="dot"><i style="background:var(--savings)"></i> پس‌انداز</span><b class="num" data-out="lgSaving">۰</b></div>
+            <div class="dl-row"><span class="dot"><i style="background:#c8d4d1"></i> تخصیص‌نیافته</span><b class="num" data-out="lgRest">۰</b></div>
+            <table class="tbl">
+              <thead><tr><th>سبد</th><th>الگوی شما</th><th>واقعی</th><th>اختلاف</th></tr></thead>
+              <tbody id="cmp-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ ۶ · معماری حساب‌ها ═══════════ -->
+  <section class="panel" id="sec-acc" role="tabpanel">
+    <div class="wrap">
+      <h2>معماری حساب‌های بانکی و قلک‌ها</h2>
+      <p class="lead">لازم نیست برای هر دسته یک حساب بانکی مجزا باز کنید؛ سه حساب اصلی و چند دسته‌بندی داخلی کافی است. این ساختار با روش «حساب‌های پاکتی دیجیتال» یا شیشه‌های مربا مطابقت دارد — انتقال خودکار پس از دریافت درآمد، هزینه‌های ضروری را پیش از خرج‌شدن تأمین می‌کند.</p>
+      <div class="card">
+        <div class="flow" id="flow-wrap"></div>
+        <div class="acc-detail" id="acc-detail"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ ۷ · دو رویکرد ═══════════ -->
+  <section class="panel" id="sec-approach" role="tabpanel">
+    <div class="wrap">
+      <h2>دو رویکرد مالی: محافظه‌کارانه و تهاجمی‌تر</h2>
+      <p class="lead">هزینه‌های ضروری و پرداخت منظم بدهی در هر دو رویکرد اولویت کامل‌اند؛ تفاوت در سقف خواسته‌ها، اندازه ذخیره اضطراری و زمان‌بندی سرمایه‌گذاری است.</p>
+      <div class="card">
+        <div class="seg" id="appr-seg" style="margin-bottom:8px" role="group" aria-label="انتخاب رویکرد">
+          <button data-appr="conservative" class="on">🛡️ محافظه‌کارانه</button>
+          <button data-appr="aggressive">🚀 تهاجمی‌تر</button>
+        </div>
+        <table class="tbl appr-tbl">
+          <thead><tr><th>موضوع</th><th id="appr-h1">محافظه‌کارانه</th><th id="appr-h2">تهاجمی‌تر</th></tr></thead>
+          <tbody id="appr-body"></tbody>
+        </table>
+      </div>
+      <div class="alert warn"><span class="a-ico">⚠️</span><div>نکته مهم: تهاجمی‌بودن در سرمایه‌گذاری نباید به معنای پرریسک‌کردن پول اجاره، قسط، لباس یا ذخیره اضطراری باشد. ریسک‌پذیری فقط باید مربوط به سرمایه مازاد و اهداف بلندمدت باشد.</div></div>
+    </div>
+  </section>
+
+  <!-- ═══════════ ۸ · هفت گام ═══════════ -->
+  <section class="panel" id="sec-steps" role="tabpanel">
+    <div class="wrap">
+      <h2>روش اصولی تخصیص درآمد — هفت گام</h2>
+      <p class="lead">ترتیب اجرا مهم است: ابتدا تعهدات، بعد ضروری‌ها، سپس صندوق‌ها و در پایان اختیاری‌ها. مبالغ هر گام به‌صورت زنده از داده‌های شما محاسبه می‌شود.</p>
+      <div class="card">
+        <div id="steps-list"></div>
+        <div class="steps-bar">
+          <span>انجام‌شده: <b class="num" data-out="stepsDone">۰ از ۷</b></span>
+          <span>مجموع تخصیص‌ها: <b class="num" data-out="stepsSum">۰</b></span>
+          <span>باقی‌مانده نهایی: <b class="num" data-out="restFinal">۰</b></span>
+          <span id="zero-chip"></span>
+        </div>
+        <div class="bar" style="max-width:280px"><i id="steps-bar" style="width:0%"></i></div>
+        <p class="hint" style="margin-top:8px">در گام‌ها، دسته ۹ (مخارج دوره‌ای) با جمع صندوق‌های بخش ۳ نمایندگی می‌شود تا چیزی دو بار حساب نشود.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ ۹ · جمع‌بندی ═══════════ -->
+  <section class="panel" id="sec-summary" role="tabpanel">
+    <div class="wrap">
+      <h2>جمع‌بندی و هشدارها</h2>
+
+      <div class="alert danger"><span class="a-ico">🚫</span><div><b>اشتباه رایج:</b> مخلوط‌کردن پول صندوق لباس، تعمیر خودرو و ذخیره اضطراری با پس‌انداز سرمایه‌گذاری. این کار باعث می‌شود موجودیِ واقعاً قابل سرمایه‌گذاری بیش از مقدار واقعی به نظر برسد و برنامه بلندمدت را به هم بزند.</div></div>
+
+      <div class="card">
+        <h3>موجودی واقعاً قابل سرمایه‌گذاری شما</h3>
+        <p class="hint">کل پولی که «پس‌انداز» به نظر می‌رسد را وارد کنید؛ سپس موجودی انباشته صندوق‌های دوره‌ای را. ذخیره اضطراری از بخش ۴ خوانده می‌شود.</p>
+        <div class="grid2">
+          <label class="amt"><input id="inv-total" type="text" inputmode="numeric" placeholder="کل موجودی پس‌انداز ظاهری"><span class="unit">تومان</span></label>
+          <label class="amt"><input id="inv-fundsacc" type="text" inputmode="numeric" placeholder="موجودی انباشته صندوق‌های دوره‌ای"><span class="unit">تومان</span></label>
+        </div>
+        <p style="margin-top:14px;font-size:1.05rem">سرمایه‌ای که بدون فشار می‌توانید وارد بازار کنید: <b class="num" style="font-size:1.35rem;color:var(--primary)" data-out="invAvail">۰</b> <span class="unit">تومان</span></p>
+        <p class="hint">= کل پس‌انداز منهای صندوق‌های دوره‌ای منهای ذخیره اضطراری</p>
+      </div>
+
+      <div class="card">
+        <h3>ساختار نهایی پیشنهادی</h3>
+        <ul class="pill-list">
+          <li>💸 <div><b>هزینه‌های جاری</b> — پولی که در طول ماه خرج می‌شود.</div></li>
+          <li>📌 <div><b>تعهدات</b> — بدهی‌ها، اقساط و پرداخت‌های غیرقابل‌چشم‌پوشی.</div></li>
+          <li>🫙 <div><b>صندوق‌های دوره‌ای</b> — لباس، تعمیرات، سفر، هدایا و خریدهای آینده.</div></li>
+          <li>🚨 <div><b>صندوق اضطراری</b> — فقط اتفاقات غیرمنتظره.</div></li>
+          <li>🌱 <div><b>سرمایه‌گذاری</b> — پولی که فعلاً به آن احتیاج ندارید.</div></li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>منابع برای مطالعه بیشتر</h3>
+        <ul class="src-list">
+          <li>راهنمای شیشه‌های مربا — <a href="https://www.moneyhelper.org.uk/en/everyday-money/budgeting/managing-your-money-using-the-jam-jar-approach" target="_blank" rel="noopener">moneyhelper.org.uk</a></li>
+          <li>روش‌های بودجه‌بندی — <a href="https://bettermoneyhabits.bankofamerica.com/en/saving-budgeting/creating-a-budget" target="_blank" rel="noopener">bettermoneyhabits.bankofamerica.com</a></li>
+          <li>ارزیابی هزینه‌های واقعی — <a href="https://www.consumerfinance.gov/owning-a-home/prepare/assess-your-spending/" target="_blank" rel="noopener">consumerfinance.gov</a></li>
+        </ul>
+        <p class="hint">دسته‌بندی‌های سلامت، پوشاک، حمل‌ونقل، آموزش، بدهی، پس‌انداز و هزینه‌های غیرمنتظره در فرم‌های بودجه‌بندی آموزشی نهادهای مصرف‌کننده نیز دیده می‌شوند.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- برگه خلاصه چاپی — فقط در حالت چاپ ساخته و نمایش داده می‌شود -->
+  <section id="print-summary" aria-hidden="true"></section>
+
+</main>
+
+<footer>
+  <div class="wrap">این ابزار یک راهنمای آموزشی است و مشاوره سرمایه‌گذاری شخصی محسوب نمی‌شود؛ تصمیم نهایی با توجه به شرایط شماست. داده‌ها فقط در مرورگر همین دستگاه ذخیره می‌شوند.</div>
+</footer>
+
+<noscript><div class="wrap"><div class="alert warn">برای استفاده از محاسبات تعاملی، جاوااسکریپت مرورگر را فعال کنید.</div></div></noscript>
+
+<script>
+'use strict';
+
+/* ────────────── داده‌های ثابت ────────────── */
+var CATS=[
+ {id:'housing',icon:'🏠',name:'مسکن و قبوض',items:'اجاره، شارژ ساختمان، آب، برق، گاز',bucket:'needs',ph:'مثلاً ۹٬۰۰۰٬۰۰۰'},
+ {id:'food',icon:'🛒',name:'خوراک و مصرف روزانه',items:'مواد غذایی، رستوران، خریدهای سوپرمارکتی',bucket:'needs',ph:'مثلاً ۸٬۰۰۰٬۰۰۰'},
+ {id:'transport',icon:'🚗',name:'حمل‌ونقل',items:'بنزین، تاکسی، سرویس خودرو، تعمیرات',bucket:'needs',ph:'مثلاً ۳٬۰۰۰٬۰۰۰'},
+ {id:'comms',icon:'📱',name:'ارتباطات',items:'شارژ موبایل، اینترنت، تلفن',bucket:'needs',ph:'مثلاً ۱٬۰۰۰٬۰۰۰'},
+ {id:'health',icon:'💊',name:'سلامت و درمان',items:'دارو، پزشک، آزمایش، بیمه درمانی',bucket:'needs',ph:'مثلاً ۲٬۰۰۰٬۰۰۰'},
+ {id:'clothing',icon:'👕',name:'پوشاک و ظاهر',items:'لباس، کفش، آرایشگاه، لوازم شخصی',bucket:'wants',ph:'مثلاً ۱٬۵۰۰٬۰۰۰'},
+ {id:'edu',icon:'📚',name:'آموزش و خانواده',items:'کتاب، دوره آموزشی، مدرسه، کمک به خانواده',bucket:'wants',ph:'مثلاً ۲٬۰۰۰٬۰۰۰'},
+ {id:'debt',icon:'💳',name:'بدهی و اقساط',items:'وام، اقساط، بدهی کارت اعتباری',bucket:'needs',ph:'مثلاً ۴٬۰۰۰٬۰۰۰'},
+ {id:'periodic',icon:'📦',name:'مخارج دوره‌ای',items:'سفر، هدیه، تعمیر خانه، خرید وسایل، هزینه‌های سالانه',bucket:'savings',ph:'مثلاً ۲٬۵۰۰٬۰۰۰'},
+ {id:'fun',icon:'🎬',name:'تفریح و سرگرمی',items:'سینما، تفریح، اشتراک‌ها، سرگرمی',bucket:'wants',ph:'مثلاً ۱٬۵۰۰٬۰۰۰'},
+ {id:'emergency',icon:'🚨',name:'صندوق اضطراری',items:'بیماری غیرمنتظره، بیکاری، خرابی جدی خودرو یا خانه',bucket:'savings',ph:'مثلاً ۲٬۰۰۰٬۰۰۰'},
+ {id:'invest',icon:'🌱',name:'پس‌انداز و سرمایه‌گذاری',items:'خرید دارایی، بازنشستگی، اهداف بلندمدت',bucket:'savings',ph:'مثلاً ۳٬۰۰۰٬۰۰۰'}
+];
+var NEEDS_IDS=['housing','food','transport','comms','health','debt'];
+var WANTS_IDS=['clothing','edu','fun'];
+var SAVE_IDS=['periodic','emergency','invest'];
+var BUCKETS={
+ needs:{label:'نیازها',color:'#2563eb'},
+ wants:{label:'خواسته‌ها',color:'#d97706'},
+ savings:{label:'پس‌انداز',color:'#059669'}
+};
+var DEFAULT_FUNDS=[
+ {id:'fd1',name:'لباس',annual:0},
+ {id:'fd2',name:'تعمیر خودرو',annual:0},
+ {id:'fd3',name:'مسافرت',annual:0},
+ {id:'fd4',name:'گوشی و لوازم دیجیتال',annual:0},
+ {id:'fd5',name:'هدیه و مناسبت‌ها',annual:0},
+ {id:'fd6',name:'هزینه‌های درمانی',annual:0}
+];
+var ACCOUNTS=[
+ {id:'income',icon:'💰',title:'حساب اصلی درآمد',sub:'نقطه ورود همه درآمدها',
+  desc:'تمام درآمدها ابتدا وارد این حساب می‌شوند و از همین‌جا طبق هفت گام تخصیص پیدا می‌کنند؛ هیچ خرجی مستقیم از این حساب انجام نمی‌شود.',
+  cats:['درآمد حقوق','درآمد جانبی','عیدی و پاداش']},
+ {id:'current',icon:'🧾',title:'حساب جاری — مصرف ماهانه',sub:'پولی که در طول ماه حرکت می‌کند',
+  desc:'خرج‌های روزمره و قابل‌پیش‌بینی ماه. بهترین گزینه برای وصل‌کردن کارت بانکی روزمره تا پول تعهدات و ذخایر خرج نشود.',
+  cats:['قبوض (دسته ۱)','خوراک (۲)','حمل‌ونقل (۳)','ارتباطات (۴)','سلامت روزانه (۵)','تفریح (۱۰)']},
+ {id:'commit',icon:'📌',title:'حساب تعهدات',sub:'پرداخت‌های ثابت و قطعی',
+  desc:'اقساط، بدهی‌ها، اجاره و هزینه‌های ثابت. بهتر است بلافاصله پس از دریافت درآمد به این حساب منتقل شوند تا پیش از خرج‌کردن، کنار رفته باشند.',
+  cats:['اجاره و شارژ (۱)','بدهی و اقساط (۸)','کمک ثابت به خانواده (۷)']},
+ {id:'reserve',icon:'🫙',title:'حساب ذخایر — صندوق‌های دوره‌ای',sub:'مخارج برنامه‌ریزی‌شده آینده',
+  desc:'لباس، سفر، تعمیرات و مخارج دوره‌ای؛ مطابق روش شیشه‌های مربا، هر هدف یک پاکت درونی مجزا دارد و ماهانه پر می‌شود.',
+  cats:['پوشاک (۶)','مخارج دوره‌ای و سفر (۹)','دوره آموزشی (۷)','درمان برنامه‌ریزی‌شده (۵)']},
+ {id:'em',icon:'🚨',title:'ذخیره اضطراری',sub:'مجزا، نقدشونده، کم‌ریسک',
+  desc:'حسابی جدا از بقیه؛ فقط برای اتفاقات غیرمنتظره مثل بیماری، بیکاری یا خرابی جدی. خرید لباس و تعمیرات برنامه‌پذیر از این حساب پرداخت نمی‌شوند.',
+  cats:['دسته ۱۱ — فقط رویدادهای غیرمنتظره']},
+ {id:'invest',icon:'🌱',title:'سبد اهداف و سرمایه‌گذاری',sub:'بلندمدت، جدای از پول مخارج',
+  desc:'پس‌انداز بلندمدت و سرمایه‌گذاری؛ پولی که فعلاً به آن احتیاج ندارید. تنها جای سیستم که ریسک معقول دارد.',
+  cats:['دسته ۱۲ — دارایی و بازنشستگی']}
+];
+var APPR=[
+ ['هزینه‌های ضروری','اولویت کامل','اولویت کامل'],
+ ['بدهی و اقساط','پرداخت منظم و تسویه بدهی پرهزینه','پرداخت منظم و تسویه بدهی پرهزینه'],
+ ['صندوق اضطراری','هدف ۶ ماه هزینه ضروری','حداقل ۳ تا ۶ ماه، متناسب با ثبات درآمد'],
+ ['صندوق‌های دوره‌ای','تأمین منظم','تأمین منظم'],
+ ['تفریح و خرید شخصی','محدودتر','انعطاف بیشتر با سقف مشخص'],
+ ['سرمایه‌گذاری','بعد از تأمین ذخایر','سهم بیشتر از مازاد درآمد']
+];
+var STEPS=[
+ {id:'s1',t:'دریافت درآمد',d:'کل درآمد به حساب اصلی وارد می‌شود.'},
+ {id:'s2',t:'اقساط و تعهدات قطعی',d:'اول از همه کنار گذاشته می‌شوند تا دچار تأخیر نشوند.'},
+ {id:'s3',t:'بودجه هزینه‌های ضروری ماهانه',d:'مسکن، خوراک، حمل‌ونقل، ارتباطات و سلامت.'},
+ {id:'s4',t:'واریز ماهانه به صندوق‌های دوره‌ای',d:'لباس، تعمیر خودرو، سفر، هدیه و هزینه‌های درمانی برنامه‌پذیر.'},
+ {id:'s5',t:'تکمیل صندوق اضطراری',d:'تا رسیدن به هدف انتخابی؛ پس از تکمیل، این سهم برای گام بعد آزاد می‌شود.'},
+ {id:'s6',t:'تخصیص به پس‌انداز و سرمایه‌گذاری',d:'مازادی که فعلاً به آن نیاز ندارید.'},
+ {id:'s7',t:'تفریح و خریدهای اختیاری',d:'هر چه باقی می‌ماند، بدون احساس گناه خرج کنید.'}
+];
+
+/* ────────────── وضعیت و ذخیره ────────────── */
+var LS_KEY='budget-fa-v1';
+var CUR={toman:'تومان',rial:'ریال',dollar:'دلار'};
+function defaultState(){
+  var cats={}; CATS.forEach(function(c){cats[c.id]=0;});
+  return {
+    currency:'toman',income:0,cats:cats,funds:JSON.parse(JSON.stringify(DEFAULT_FUNDS)),
+    nextFund:7,em:{months:6,balance:0,auto:true,manual:0},
+    rule:{needs:50,wants:30,savings:20},approach:'conservative',
+    steps:{},invTotal:0,invFundsAcc:0,tab:'dash',accSel:'current'
+  };
+}
+var state=defaultState();
+try{
+  var raw=localStorage.getItem(LS_KEY);
+  if(raw){
+    var s=JSON.parse(raw);
+    /* ادغام محتاطانه با پیش‌فرض‌ها برای سازگاری نسخه‌ها */
+    for(var k in s){ if(s[k]!==undefined&&s[k]!==null) state[k]=s[k]; }
+    CATS.forEach(function(c){ if(typeof state.cats[c.id]!=='number') state.cats[c.id]=0; });
+  }
+}catch(e){/* داده خراب؛ همان پیش‌فرض */}
+
+var saveTimer=null;
+function save(){
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(function(){
+    try{ localStorage.setItem(LS_KEY,JSON.stringify(state)); }catch(e){}
+  },250);
+}
+
+/* ────────────── ابزار اعداد فارسی ────────────── */
+var faNum=new Intl.NumberFormat('fa-IR');
+var faPct=new Intl.NumberFormat('fa-IR',{style:'percent',maximumFractionDigits:1});
+function fmt(n){ n=+n||0; return faNum.format(Math.round(n)); }
+function fmtP(n){ n=+n||0; return faPct.format(n); }
+var FA_DIGITS='۰۱۲۳۴۵۶۷۸۹',AR_DIGITS='٠١٢٣٤٥٦٧٨٩';
+function parseNum(s){
+  if(s===null||s===undefined) return 0;
+  s=String(s); var out='';
+  for(var i=0;i<s.length;i++){
+    var ch=s[i];
+    var f=FA_DIGITS.indexOf(ch),a=AR_DIGITS.indexOf(ch);
+    if(f>-1) out+=String(f);
+    else if(a>-1) out+=String(a);
+    else if((ch>='0'&&ch<='9')||ch==='.') out+=ch;
+  }
+  var v=parseFloat(out);
+  return isNaN(v)?0:v;
+}
+
+/* ────────────── محاسبات مشترک ────────────── */
+function calc(){
+  var inc=+state.income||0;
+  var c=function(id){ return +state.cats[id]||0; };
+  var sum=function(ids){ return ids.reduce(function(s,i){return s+c(i);},0); };
+  var needs=sum(NEEDS_IDS), wants=sum(WANTS_IDS), saving=sum(SAVE_IDS);
+  var total=needs+wants+saving;
+  var debt=c('debt'), essNoDebt=needs-debt, invest=c('invest');
+  var fundsY=(state.funds||[]).reduce(function(s,f){return s+(+f.annual||0);},0);
+  var fundsM=fundsY/12;
+  var ess=state.em.auto?needs:(+state.em.manual||0);
+  var target=ess*(+state.em.months||6);
+  var bal=+state.em.balance||0;
+  var deficit=Math.max(0,target-bal);
+  var emPct=target>0?Math.min(100,bal/target*100):0;
+  /* دسته ۹ با صندوق‌ها نمایندگی می‌شود؛ دسته ۱۱ هم در گام ۵ خلاصه است */
+  var committed=needs+wants+fundsM+invest;
+  var rest=inc-committed;
+  return {inc:inc,needs:needs,wants:wants,saving:saving,total:total,debt:debt,
+    essNoDebt:essNoDebt,invest:invest,fundsY:fundsY,fundsM:fundsM,ess:ess,
+    target:target,bal:bal,deficit:deficit,emPct:emPct,committed:committed,rest:rest};
+}
+
+/* ────────────── رندر اجزای پویا ────────────── */
+var $=function(s){return document.querySelector(s);};
+var $$=function(s){return Array.prototype.slice.call(document.querySelectorAll(s));};
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function buildCats(){
+  var g=$('#cats-grid'); var h='';
+  CATS.forEach(function(c){
+    var b=BUCKETS[c.bucket];
+    h+='<div class="cat-card">'
+      +'<div class="head"><span class="ico">'+c.icon+'</span><div style="flex:1">'
+      +'<div class="name">'+c.name+' <span class="bchip b-'+c.bucket+'">'+b.label+'</span></div>'
+      +'<div class="items">'+c.items+'</div></div></div>'
+      +'<label class="amt"><input type="text" inputmode="numeric" data-cat="'+c.id+'" placeholder="'+c.ph+'"><span class="unit">'+CUR[state.currency]+'</span></label>'
+      +'<div class="pct-line" data-pctcat="'+c.id+'"></div>'
+      +'</div>';
+  });
+  g.innerHTML=h;
+}
+
+function buildFunds(){
+  var w=$('#funds-list'); var h='';
+  (state.funds||[]).forEach(function(f){
+    h+='<div class="fund-row" data-fid="'+f.id+'">'
+      +'<input class="f-name" type="text" value="'+esc(f.name)+'" placeholder="نام صندوق" aria-label="نام صندوق">'
+      +'<label class="amt"><input class="f-annual" type="text" inputmode="numeric" placeholder="مثلاً ۱۲٬۰۰۰٬۰۰۰" aria-label="هزینه سالانه"><span class="unit">'+CUR[state.currency]+'</span></label>'
+      +'<div>سهم ماهانه: <span class="f-monthly num" data-fm>۰</span></div>'
+      +'<button class="f-del" type="button" title="حذف صندوق" aria-label="حذف">×</button>'
+      +'</div>';
+  });
+  w.innerHTML=h;
+  /* مقداردهی اولیه ورودی‌های سالانه */
+  (state.funds||[]).forEach(function(f){
+    var row=w.querySelector('[data-fid="'+f.id+'"]');
+    if(row&&f.annual) row.querySelector('.f-annual').value=faNum.format(f.annual);
+  });
+}
+
+function buildRule(){
+  var w=$('#rule-rows'); var h='';
+  [['needs','نیازها'],['wants','خواسته‌ها'],['savings','پس‌انداز و بدهی']].forEach(function(p){
+    var b=BUCKETS[p[0]];
+    h+='<div class="rule-row">'
+      +'<span class="lbl"><i style="background:'+b.color+'"></i>'+p[1]+'</span>'
+      +'<input type="range" min="0" max="100" step="1" data-rule="'+p[0]+'" value="'+state.rule[p[0]]+'" aria-label="درصد '+p[1]+'">'
+      +'<b class="num" data-rulepct="'+p[0]+'"></b>'
+      +'<span class="amt-o num" data-ruleamt="'+p[0]+'"></span>'
+      +'</div>';
+  });
+  w.innerHTML=h;
+}
+
+function buildFlow(){
+  var w=$('#flow-wrap');
+  function node(a,extra){return '<button class="node '+(extra||'')+'" type="button" data-acc="'+a.id+'">'
+    +'<div class="n-ico">'+a.icon+'</div><div class="n-t">'+a.title+'</div><div class="n-s">'+a.sub+'</div></button>';}
+  var income=ACCOUNTS[0];
+  var mid=[ACCOUNTS[1],ACCOUNTS[2],ACCOUNTS[3]];
+  var low=[ACCOUNTS[4],ACCOUNTS[5]];
+  var h='<div class="flow-row">'+node(income,'income-node')+'</div>'
+    +'<div class="arrows">⬇ ⬇ ⬇</div>'
+    +'<div class="flow-row">'+mid.map(function(a){return node(a);}).join('')+'</div>'
+    +'<div class="arrows">از مازادِ پس از تعهدات ←</div>'
+    +'<div class="flow-row">'+low.map(function(a){return node(a);}).join('')+'</div>';
+  w.innerHTML=h;
+}
+
+function buildApproach(){
+  var b=$('#appr-body'); var h='';
+  APPR.forEach(function(r){
+    h+='<tr><td><b>'+r[0]+'</b></td><td class="c1">'+r[1]+'</td><td class="c2">'+r[2]+'</td></tr>';
+  });
+  b.innerHTML=h;
+}
+
+function buildSteps(){
+  var w=$('#steps-list'); var h='';
+  STEPS.forEach(function(s,i){
+    h+='<div class="step" data-step="'+s.id+'">'
+      +'<input type="checkbox" data-stepchk="'+s.id+'" aria-label="انجام شد: '+s.t+'">'
+      +'<div><div class="s-t">'+(i+1)+'. '+s.t+'</div><div class="s-d">'+s.d+'</div></div>'
+      +'<div class="s-amt num" data-stepamt="'+s.id+'"></div>'
+      +'</div>';
+  });
+  w.innerHTML=h;
+}
+
+/* ────────────── به‌روزرسانی خروجی‌ها ────────────── */
+function drawDonut(svg,segs){
+  /* سازگار با هر دو فراخوانی: تک‌آرگومانی قدیمی و دوآرگومانی */
+  if(!segs){segs=svg;svg=null;}
+  svg=svg||$('#donut-svg');
+  if(!svg)return;
+  svg.innerHTML='';
+  var total=segs.reduce(function(s,x){return s+x.v;},0);
+  var NS='http://www.w3.org/2000/svg';
+  var R=62,C=2*Math.PI*R,off=0;
+  segs.forEach(function(s){
+    if(s.v<=0)return;
+    var frac=s.v/total, dash=frac*C;
+    var el=document.createElementNS(NS,'circle');
+    el.setAttribute('cx',80);el.setAttribute('cy',80);el.setAttribute('r',R);
+    el.setAttribute('fill','none');
+    el.setAttribute('stroke',s.c);
+    el.setAttribute('stroke-width',24);
+    el.setAttribute('stroke-dasharray',dash+' '+(C-dash));
+    el.setAttribute('stroke-dashoffset',-off);
+    svg.appendChild(el);
+    off+=dash;
+  });
+  if(total<=0){
+    var t=document.createElementNS(NS,'text');
+    t.setAttribute('x',80);t.setAttribute('y',86);t.setAttribute('text-anchor','middle');
+    t.setAttribute('font-size','11');t.setAttribute('fill','#5f7a80');
+    t.textContent='داده‌ای وارد نشده';
+    svg.appendChild(t);
+  }
+  svg.style.transform='rotate(-90deg)';
+}
+
+function updateAll(){
+  var m=calc();
+  var cur=CUR[state.currency];
+  $$('.unit').forEach(function(u){u.textContent=cur;});
+
+  /* بخش شروع */
+  $('#k-inc').textContent=fmt(m.inc);
+  $('#k-cats').textContent=fmt(m.total);
+  $('#k-cats-s').textContent=m.inc>0?('درصد درآمد: '+fmtP(m.total/m.inc)):'هنوز دسته‌ای پر نشده';
+  $('#k-funds').textContent=fmt(m.fundsM);
+  var kr=$('#k-rest');
+  kr.textContent=(m.rest<0?'− ':'')+fmt(Math.abs(m.rest));
+  kr.className='v num '+(m.rest<0?'neg':(m.rest>0?'pos':''));
+  $('#k-rest-s').textContent=m.rest<0?'بودجه‌ها از درآمد بیشترند!':(m.rest>0?'برای گام تفریح باقی می‌ماند':'تخصیص صفرمبنایی کامل');
+
+  /* دسته‌ها */
+  $$('[data-out]').forEach(function(el){
+    var k=el.dataset.out;
+    if(k==='sum')el.textContent=fmt(m.total);
+    else if(k==='needs')el.textContent=fmt(m.needs);
+    else if(k==='wants')el.textContent=fmt(m.wants);
+    else if(k==='saving')el.textContent=fmt(m.saving);
+    else if(k==='sumPct')el.textContent=m.inc>0?fmtP(m.total/m.inc):'—';
+    else if(k==='restCats')el.textContent=m.inc>0?((m.inc-m.total<0?'− ':'')+fmt(Math.abs(m.inc-m.total))):'—';
+    else if(k==='fundsCount')el.textContent=fmt((state.funds||[]).length);
+    else if(k==='fundsM')el.textContent=fmt(m.fundsM);
+    else if(k==='fundsY')el.textContent=fmt(m.fundsY);
+    else if(k==='emEss')el.textContent=fmt(m.ess);
+    else if(k==='emMonths')el.textContent=faNum.format(state.em.months)+' ماه';
+    else if(k==='emTarget')el.innerHTML=fmt(m.target)+' <span class="unit">'+cur+'</span>';
+    else if(k==='emPct')el.textContent=fmtP(m.emPct/100);
+    else if(k==='emDef')el.textContent=fmt(m.deficit);
+    else if(k==='donutInc')el.textContent=fmt(m.inc);
+    else if(k==='lgNeeds')el.textContent=fmt(m.needs);
+    else if(k==='lgWants')el.textContent=fmt(m.wants);
+    else if(k==='lgSaving')el.textContent=fmt(m.saving);
+    else if(k==='lgRest')el.textContent=fmt(Math.max(0,m.inc-m.total));
+    else if(k==='stepsDone'){
+      var d=STEPS.filter(function(s){return state.steps[s.id];}).length;
+      el.textContent=faNum.format(d)+' از ۷';
+      $('#steps-bar').style.width=(d/7*100)+'%';
+    }
+    else if(k==='stepsSum')el.textContent=fmt(m.committed);
+    else if(k==='restFinal'){
+      el.textContent=(m.rest<0?'− ':'')+fmt(Math.abs(m.rest));
+      el.style.color=m.rest<0?'var(--danger)':'var(--primary)';
+    }
+    else if(k==='invAvail')el.textContent=fmt(Math.max(0,(+state.invTotal||0)-(+state.invFundsAcc||0)-m.bal));
+  });
+
+  /* درصد هر دسته از درآمد */
+  CATS.forEach(function(c){
+    var el=document.querySelector('[data-pctcat="'+c.id+'"]');
+    if(el) el.textContent=m.inc>0&&(+state.cats[c.id]>0)?('سهم از درآمد: '+fmtP((+state.cats[c.id]||0)/m.inc)):'';
+  });
+
+  /* صندوق‌ها */
+  (state.funds||[]).forEach(function(f){
+    var row=document.querySelector('.fund-row[data-fid="'+f.id+'"]');
+    if(row) row.querySelector('[data-fm]').textContent=fmt((+f.annual||0)/12);
+  });
+  var fmWrap=$('#funds-match');
+  var cat9=+state.cats['periodic']||0;
+  if(cat9>0||m.fundsM>0){
+    var ok=Math.abs(m.fundsM-cat9)<1;
+    fmWrap.innerHTML=ok
+      ?'<span class="okchip">✓ هماهنگ — جمع سهم ماهانه صندوق‌ها با بودجه دسته ۹ برابر است</span>'
+      :'<span class="warnchip">پیشنهاد: جمع سهم ماهانه صندوق‌ها ('+fmt(m.fundsM)+') را با بودجه دسته ۹ «مخارج دوره‌ای» ('+fmt(cat9)+') هماهنگ کنید</span>';
+  } else fmWrap.innerHTML='';
+
+  /* صندوق اضطراری */
+  $('#em-bar').style.width=m.emPct+'%';
+  $('#em-manual-wrap').classList.toggle('hidden',!!state.em.auto);
+  var tip=$('#em-tip');
+  tip.innerHTML=state.approach==='conservative'
+    ?'<span class="a-ico">🛡️</span><div>رویکرد محافظه‌کارانه: هدف ۶ ماه هزینه ضروری یا بیشتر برای شما مناسب‌تر است؛ اگر درآمد متغیر دارید، به سمت بالای بازه بروید.</div>'
+    :'<span class="a-ico">🚀</span><div>رویکرد تهاجمی‌تر: حداقل ۳ تا ۶ ماه نگه دارید و متناسب با ثبات درآمد تنظیم کنید؛ ذخیره اضطراری هرگز وارد ریسک نمی‌شود.</div>';
+
+  /* قاعده */
+  ['needs','wants','savings'].forEach(function(k){
+    var el=document.querySelector('[data-rule="'+k+'"]');
+    if(el) el.value=state.rule[k];
+    var p=document.querySelector('[data-rulepct="'+k+'"]');
+    if(p) p.textContent=faNum.format(state.rule[k])+'٪';
+    var a=document.querySelector('[data-ruleamt="'+k+'"]');
+    if(a) a.textContent=fmt(m.inc*state.rule[k]/100);
+  });
+  drawDonut([
+    {v:m.needs,c:BUCKETS.needs.color},
+    {v:m.wants,c:BUCKETS.wants.color},
+    {v:m.saving,c:BUCKETS.savings.color},
+    {v:Math.max(0,m.inc-m.total),c:'#c8d4d1'}
+  ]);
+  var cb=$('#cmp-body'); var h='';
+  [['needs','نیازها'],['wants','خواسته‌ها'],['savings','پس‌انداز']].forEach(function(p){
+    var k=p[0],rp=state.rule[k];
+    var actual=m.inc>0?(k==='needs'?m.needs:(k==='wants'?m.wants:m.saving))/m.inc*100:0;
+    var d=rp-actual;
+    var cls=d>0.5?'pos':(d<-0.5?'neg':'zero');
+    var sign=d>0.5?'+':(d<-0.5?'−':'±');
+    h+='<tr><td><span class="dot"><i style="background:'+BUCKETS[k].color+'"></i></span> '+p[1]+'</td>'
+      +'<td class="num">'+faNum.format(rp)+'٪ · '+fmt(m.inc*rp/100)+'</td>'
+      +'<td class="num">'+(m.inc>0?(faNum.format(Math.round(actual))+'٪ · '+fmt(k==='needs'?m.needs:(k==='wants'?m.wants:m.saving))):'—')+'</td>'
+      +'<td><span class="delta '+cls+'">'+sign+' '+faNum.format(Math.abs(Math.round(d)))+'٪</span></td></tr>';
+  });
+  cb.innerHTML=h;
+
+  /* رویکرد */
+  $$('#appr-body .c1').forEach(function(td){td.classList.toggle('hl',state.approach==='conservative');});
+  $$('#appr-body .c2').forEach(function(td){td.classList.toggle('hl',state.approach==='aggressive');});
+
+  /* گام‌ها */
+  var amounts={s1:m.inc,s2:m.debt,s3:m.essNoDebt,s4:m.fundsM,s5:m.deficit,s6:m.invest,s7:m.rest};
+  var subs={
+    s5:m.target>0?('هدف '+fmt(m.target)+' · موجودی '+fmt(m.bal)):'',
+    s7:m.rest<0?'بیش از درآمد بودجه‌بندی کرده‌اید':''
+  };
+  STEPS.forEach(function(s){
+    var el=document.querySelector('[data-stepamt="'+s.id+'"]');
+    if(!el)return;
+    var v=amounts[s.id]||0;
+    var neg=s.id==='s7'&&v<0;
+    el.innerHTML=(neg?'− ':'')+fmt(Math.abs(v))+' '+cur
+      +(subs[s.id]?'<small>'+subs[s.id]+'</small>':'');
+    el.style.color=neg?'var(--danger)':(s.id==='s1'?'var(--ink)':'var(--primary)');
+    var chk=document.querySelector('[data-stepchk="'+s.id+'"]');
+    if(chk){chk.checked=!!state.steps[s.id];
+      chk.closest('.step').classList.toggle('done',!!state.steps[s.id]);}
+  });
+  var zc=$('#zero-chip');
+  zc.innerHTML=m.inc>0
+    ?(Math.abs(m.rest)<1
+      ?'<span class="okchip">✓ تخصیص صفرمبنایی: هر تومان جای مشخصی دارد</span>'
+      :(m.rest>0?'<span class="warnchip">'+fmt(m.rest)+' هنوز تخصیص نیافته است</span>'
+                :'<span class="delta neg">کسری '+fmt(Math.abs(m.rest))+' — بودجه را جمع کنید</span>'))
+    :'';
+
+  renderDash(m);
+  save();
+}
+
+/* ────────────── داشبورد — فقط خواندنی ────────────── */
+var DASH_NAV=[
+  ['start','درآمد'],['cats','۱۲ دسته'],['funds','صندوق‌ها'],['em','اضطراری'],
+  ['rule','۵۰/۳۰/۲۰'],['acc','حساب‌ها'],['approach','رویکرد'],['steps','هفت گام'],['summary','جمع‌بندی']
+];
+function renderDash(m){
+  var cur=CUR[state.currency];
+  $('#d-inc').textContent=fmt(m.inc);
+  $('#d-total').textContent=fmt(m.total);
+  $('#d-total-s').textContent=m.inc>0?('درصد درآمد: '+fmtP(m.total/m.inc)):'—';
+  $('#d-funds').textContent=fmt(m.fundsM);
+  var r=$('#d-rest');
+  r.textContent=(m.rest<0?'− ':'')+fmt(Math.abs(m.rest));
+  r.className='v num '+(m.rest<0?'neg':(m.rest>0?'pos':''));
+  $('#d-rest-s').textContent=m.rest<0?'بودجه‌ها از درآمد بیشترند!':(m.rest>0?'برای تفریح و اختیاری':'تخصیص صفرمبنایی کامل');
+  $('#d-donut-inc').textContent=fmt(m.inc);
+  $('#d-lg-needs').textContent=fmt(m.needs);
+  $('#d-lg-wants').textContent=fmt(m.wants);
+  $('#d-lg-save').textContent=fmt(m.saving);
+  $('#d-lg-rest').textContent=fmt(Math.max(0,m.inc-m.total));
+  drawDonut(document.getElementById('dash-donut'),[
+    {v:m.needs,c:BUCKETS.needs.color},
+    {v:m.wants,c:BUCKETS.wants.color},
+    {v:m.saving,c:BUCKETS.savings.color},
+    {v:Math.max(0,m.inc-m.total),c:'#c8d4d1'}
+  ]);
+  $('#d-em-months').textContent=faNum.format(state.em.months);
+  $('#d-em-target').textContent=fmt(m.target);
+  $('#d-em-bar').style.width=m.emPct+'%';
+  $('#d-em-pct').textContent=fmtP(m.emPct/100);
+  $('#d-em-bal').textContent=fmt(m.bal);
+  $('#d-em-def').textContent=fmt(m.deficit);
+  $('#d-em-ess').textContent=fmt(m.ess);
+  var fb='';
+  (state.funds||[]).forEach(function(f){
+    fb+='<tr><td>'+esc(f.name)+'</td><td class="num">'+fmt((+f.annual||0)/12)+'</td></tr>';
+  });
+  if(!fb)fb='<tr><td colspan="2" class="hint">هنوز صندوقی تعریف نشده است</td></tr>';
+  $('#d-funds-body').innerHTML=fb;
+  $('#d-funds-sum').textContent=fmt(m.fundsM)+' '+cur;
+  var cb='';
+  [['needs','نیازها'],['wants','خواسته‌ها'],['savings','پس‌انداز']].forEach(function(x){
+    var v=x[0]==='needs'?m.needs:(x[0]==='wants'?m.wants:m.saving);
+    var act=m.inc>0?v/m.inc*100:0;
+    cb+='<tr><td><span class="dot"><i style="background:'+BUCKETS[x[0]].color+'"></i></span> '+x[1]+'</td>'
+      +'<td class="num">'+faNum.format(state.rule[x[0]])+'٪ · '+fmt(m.inc*state.rule[x[0]]/100)+'</td>'
+      +'<td class="num">'+(m.inc>0?faNum.format(Math.round(act))+'٪ · '+fmt(v):'—')+'</td></tr>';
+  });
+  $('#d-cmp-body').innerHTML=cb;
+  var amts={s1:m.inc,s2:m.debt,s3:m.essNoDebt,s4:m.fundsM,s5:m.deficit,s6:m.invest,s7:m.rest};
+  var sb='';
+  STEPS.forEach(function(s,i){
+    var v=amts[s.id]||0,neg=(s.id==='s7'&&v<0);
+    sb+='<div style="display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px dashed var(--line);font-size:.88rem">'
+      +'<span>'+(i+1)+'. '+s.t+'</span>'
+      +'<b class="num"'+(neg?' style="color:var(--danger)"':'')+'>'+(neg?'− ':'')+fmt(Math.abs(v))+'</b></div>';
+  });
+  $('#d-steps').innerHTML=sb;
+  var nv=$('#d-nav');
+  if(!nv.dataset.bound){
+    nv.dataset.bound='1';
+    DASH_NAV.forEach(function(n){
+      var b=document.createElement('button');
+      b.type='button';b.className='tab';b.textContent=n[1];
+      b.addEventListener('click',function(){
+        var t=document.querySelector('#tabs .tab[data-tab="'+n[0]+'"]');
+        if(t)t.click();
+      });
+      nv.appendChild(b);
+    });
+  }
+}
+
+/* ────────────── تعامل ورودی‌ها ────────────── */
+function bindAmountInput(el,get,set){
+  el.addEventListener('input',function(){ set(parseNum(el.value)); updateAll(); });
+  el.addEventListener('blur',function(){
+    var v=get();
+    el.value=v>0?faNum.format(v):'';
+  });
+  var v=get(); if(v>0) el.value=faNum.format(v);
+}
+
+function init(){
+  buildCats(); buildFunds(); buildRule(); buildFlow(); buildApproach(); buildSteps();
+
+  /* تب‌ها */
+  $$('#tabs .tab').forEach(function(t){
+    t.addEventListener('click',function(){
+      $$('#tabs .tab').forEach(function(x){x.classList.remove('on');});
+      t.classList.add('on');
+      $$('.panel').forEach(function(p){p.classList.remove('active');});
+      var sec=document.getElementById('sec-'+t.dataset.tab);
+      if(sec) sec.classList.add('active');
+      state.tab=t.dataset.tab;
+      window.scrollTo({top:0,behavior:'smooth'});
+      save();
+    });
+  });
+  if(state.tab&&state.tab!=='start'){
+    var t=document.querySelector('#tabs .tab[data-tab="'+state.tab+'"]');
+    if(t) t.click();
+  }
+
+  /* واحد پول */
+  $$('#cur-seg button').forEach(function(b){
+    b.addEventListener('click',function(){
+      $$('#cur-seg button').forEach(function(x){x.classList.remove('on');});
+      b.classList.add('on');
+      state.currency=b.dataset.cur;
+      updateAll();
+    });
+  });
+  var curBtn=document.querySelector('#cur-seg button[data-cur="'+state.currency+'"]');
+  if(curBtn) curBtn.click();
+
+  /* درآمد */
+  bindAmountInput($('#income-in'),function(){return state.income;},function(v){state.income=v;});
+
+  /* دسته‌ها */
+  $$('[data-cat]').forEach(function(el){
+    bindAmountInput(el,function(){return +state.cats[el.dataset.cat]||0;},function(v){state.cats[el.dataset.cat]=v;});
+  });
+
+  /* صندوق‌ها */
+  $('#add-fund').addEventListener('click',function(){
+    state.funds.push({id:'fd'+(state.nextFund||1)+'-'+Date.now(),name:'صندوق جدید',annual:0});
+    state.nextFund=(state.nextFund||1)+1;
+    buildFunds(); bindFundRows(); updateAll();
+  });
+  function bindFundRows(){
+    $$('.fund-row').forEach(function(row){
+      var fid=row.dataset.fid;
+      var f=state.funds.filter(function(x){return x.id===fid;})[0];
+      if(!f)return;
+      var nameIn=row.querySelector('.f-name');
+      nameIn.addEventListener('input',function(){f.name=nameIn.value;save();});
+      bindAmountInput(row.querySelector('.f-annual'),function(){return +f.annual||0;},function(v){f.annual=v;});
+      row.querySelector('.f-del').addEventListener('click',function(){
+        state.funds=state.funds.filter(function(x){return x.id!==fid;});
+        buildFunds(); bindFundRows(); updateAll();
+      });
+    });
+  }
+  bindFundRows();
+
+  /* صندوق اضطراری */
+  $('#em-months').value=state.em.months;
+  $('#em-months').addEventListener('input',function(){
+    state.em.months=+this.value; updateAll();
+  });
+  $('#em-auto').checked=!!state.em.auto;
+  $('#em-auto').addEventListener('change',function(){state.em.auto=this.checked;updateAll();});
+  bindAmountInput($('#em-manual'),function(){return +state.em.manual||0;},function(v){state.em.manual=v;});
+  bindAmountInput($('#em-bal'),function(){return +state.em.balance||0;},function(v){state.em.balance=v;});
+
+  /* قاعده — جمع سه اسلایدر همیشه ۱۰۰ */
+  $$('[data-rule]').forEach(function(el){
+    el.addEventListener('input',function(){
+      var ch=el.dataset.rule;
+      var v=Math.max(0,Math.min(100,+el.value||0));
+      state.rule[ch]=v;
+      var ids=['needs','wants','savings'].filter(function(i){return i!==ch;});
+      var rem=100-v,o1=state.rule[ids[0]],o2=state.rule[ids[1]],tot=o1+o2;
+      var a,b;
+      if(tot<=0){a=Math.round(rem/2);b=rem-a;}
+      else{
+        a=Math.round(rem*o1/tot);b=rem-a;
+        if(a<0){a=0;b=rem;} if(b<0){b=0;a=rem;}
+      }
+      state.rule[ids[0]]=a;state.rule[ids[1]]=b;
+      updateAll();
+    });
+  });
+
+  /* معماری حساب‌ها */
+  $$('#flow-wrap .node').forEach(function(n){
+    n.addEventListener('click',function(){
+      $$('#flow-wrap .node').forEach(function(x){x.classList.remove('on');});
+      n.classList.add('on');
+      state.accSel=n.dataset.acc;
+      var a=ACCOUNTS.filter(function(x){return x.id===n.dataset.acc;})[0];
+      var d=$('#acc-detail');
+      if(a){
+        d.innerHTML='<div class="alert info" style="margin-bottom:0"><span class="a-ico">'+a.icon+'</span><div>'
+          +'<b>'+a.title+'</b> — '+a.desc
+          +'<div class="acc-chips">'+a.cats.map(function(c){return '<span>'+c+'</span>';}).join('')+'</div>'
+          +'</div></div>';
+      }
+      save();
+    });
+  });
+  var selNode=document.querySelector('#flow-wrap .node[data-acc="'+(state.accSel||'current')+'"]');
+  if(selNode) selNode.click();
+
+  /* رویکرد */
+  $$('#appr-seg button').forEach(function(b){
+    b.addEventListener('click',function(){
+      $$('#appr-seg button').forEach(function(x){x.classList.remove('on');});
+      b.classList.add('on');
+      state.approach=b.dataset.appr;
+      updateAll();
+    });
+  });
+  var apprBtn=document.querySelector('#appr-seg button[data-appr="'+state.approach+'"]');
+  if(apprBtn) apprBtn.click();
+
+  /* گام‌ها */
+  $$('[data-stepchk]').forEach(function(chk){
+    chk.addEventListener('change',function(){
+      state.steps[chk.dataset.stepchk]=chk.checked;
+      updateAll();
+    });
+  });
+
+  /* جمع‌بندی */
+  bindAmountInput($('#inv-total'),function(){return +state.invTotal||0;},function(v){state.invTotal=v;});
+  bindAmountInput($('#inv-fundsacc'),function(){return +state.invFundsAcc||0;},function(v){state.invFundsAcc=v;});
+
+  /* بازنشانی دو مرحله‌ای */
+  var rb=$('#reset-btn'),armT=null;
+  rb.addEventListener('click',function(){
+    if(!rb.classList.contains('arm')){
+      rb.classList.add('arm');rb.textContent='مطمئنید؟ دوباره کلیک کنید';
+      armT=setTimeout(function(){rb.classList.remove('arm');rb.textContent='بازنشانی داده‌ها';},3500);
+    }else{
+      clearTimeout(armT);
+      try{localStorage.removeItem(LS_KEY);}catch(e){}
+      state=defaultState();
+      location.reload();
+    }
+  });
+
+  /* اتصال دکمه‌های چاپ نوار بالا */
+  $('#print-sum-btn').addEventListener('click',function(){doPrint('summary');});
+  $('#print-all-btn').addEventListener('click',function(){doPrint('all');});
+
+  /* تزریق دکمه چاپ کنار عنوان هر بخش */
+  $$('.panel > .wrap > h2').forEach(function(h2el){
+    var panel=h2el.closest('.panel');
+    if(!panel)return;
+    var sec=panel.id.replace('sec-','');
+    var head=document.createElement('div');
+    head.className='sec-head';
+    h2el.parentNode.insertBefore(head,h2el);
+    head.appendChild(h2el);
+    var b=document.createElement('button');
+    b.type='button';
+    b.className='pbtn';
+    b.textContent='🖨️ چاپ این بخش (A4)';
+    b.addEventListener('click',function(){doPrint('sec',sec);});
+    head.appendChild(b);
+  });
+
+  updateAll();
+}
+
+/* ────────────── سیستم چاپ — کاملاً خواندنی، بدون دستکاری داده ────────────── */
+function faDate(){
+  try{
+    return new Intl.DateTimeFormat('fa-IR',{year:'numeric',month:'long',day:'numeric'}).format(new Date());
+  }catch(e){return '';}
+}
+function printCleanup(){
+  document.body.classList.remove('printing','printing-all','printing-sum');
+  $$('.panel.print-this').forEach(function(p){p.classList.remove('print-this');});
+}
+window.addEventListener('afterprint',printCleanup);
+function doPrint(mode,secId){
+  printCleanup();
+  if(mode==='sec'){
+    var p=document.getElementById('sec-'+secId);
+    if(!p)return;
+    p.classList.add('print-this');
+    document.body.classList.add('printing');
+  }else if(mode==='all'){
+    document.body.classList.add('printing-all');
+  }else if(mode==='summary'){
+    buildPrintSummary();
+    document.body.classList.add('printing-sum');
+  }else return;
+  var d=$('#print-date');
+  if(d)d.textContent=faDate();
+  /* فرصت کوتاه رندر پیش از باز شدن پنجره چاپ */
+  setTimeout(function(){window.print();},60);
+}
+function buildPrintSummary(){
+  var m=calc(),cur=CUR[state.currency];
+  var c=function(id){return +state.cats[id]||0;};
+  var pct=function(v){return m.inc>0?fmtP(v/m.inc):'—';};
+
+  var rows='';
+  CATS.forEach(function(cat){
+    rows+='<tr><td>'+cat.icon+' '+cat.name+'</td>'
+      +'<td><span class="dot"><i style="background:'+BUCKETS[cat.bucket].color+'"></i></span> '+BUCKETS[cat.bucket].label+'</td>'
+      +'<td class="num">'+fmt(c(cat.id))+'</td><td class="num">'+pct(c(cat.id))+'</td></tr>';
+  });
+  [['جمع نیازها',m.needs],['جمع خواسته‌ها',m.wants],['جمع پس‌انداز',m.saving],['جمع کل بودجه‌ها',m.total]].forEach(function(s){
+    rows+='<tr class="sumrow"><th>'+s[0]+'</th><th></th><th class="num">'+fmt(s[1])+'</th><th class="num">'+pct(s[1])+'</th></tr>';
+  });
+
+  var frows='';
+  (state.funds||[]).forEach(function(f){
+    frows+='<tr><td>'+esc(f.name)+'</td><td class="num">'+fmt(+f.annual||0)+'</td><td class="num">'+fmt((+f.annual||0)/12)+'</td></tr>';
+  });
+  frows+='<tr class="sumrow"><th>جمع صندوق‌ها</th><th class="num">'+fmt(m.fundsY)+'</th><th class="num">'+fmt(m.fundsM)+'</th></tr>';
+
+  var crows='';
+  [['نیازها','needs',m.needs],['خواسته‌ها','wants',m.wants],['پس‌انداز','savings',m.saving]].forEach(function(x){
+    var act=m.inc>0?x[2]/m.inc*100:0;
+    crows+='<tr><td>'+x[0]+'</td>'
+      +'<td class="num">'+faNum.format(state.rule[x[1]])+'٪ · '+fmt(m.inc*state.rule[x[1]]/100)+'</td>'
+      +'<td class="num">'+(m.inc>0?faNum.format(Math.round(act))+'٪ · '+fmt(x[2]):'—')+'</td></tr>';
+  });
+
+  var amts={s1:m.inc,s2:m.debt,s3:m.essNoDebt,s4:m.fundsM,s5:m.deficit,s6:m.invest,s7:m.rest};
+  var srows='';
+  STEPS.forEach(function(s,i){
+    var v=amts[s.id]||0,neg=(s.id==='s7'&&v<0);
+    srows+='<tr><td>'+(i+1)+'. '+s.t+(s.id==='s5'?' (هدف '+fmt(m.target)+' · موجودی '+fmt(m.bal)+')':'')+'</td>'
+      +'<td class="num"'+(neg?' style="color:var(--danger)"':'')+'>'+(neg?'− ':'')+fmt(Math.abs(v))+'</td></tr>';
+  });
+
+  var avail=Math.max(0,(+state.invTotal||0)-(+state.invFundsAcc||0)-m.bal);
+
+  var h=''
+    +'<div class="sum-head"><h2>🫙 خلاصه یک‌صفحه‌ای بودجه شخصی — تک‌نفره</h2>'
+    +'<div class="sum-meta num">'+faDate()+' · واحد: '+cur+' · رویکرد: '
+    +(state.approach==='conservative'?'محافظه‌کارانه':'تهاجمی‌تر')+'</div></div>'
+    +'<div class="sum-top"><div class="sum-kpis">'
+    +'<div class="sum-kpi"><span>درآمد ماهانه</span><b class="num">'+fmt(m.inc)+'</b></div>'
+    +'<div class="sum-kpi"><span>جمع بودجه دسته‌ها</span><b class="num">'+fmt(m.total)+'</b></div>'
+    +'<div class="sum-kpi"><span>تعهد ماهانه صندوق‌ها</span><b class="num">'+fmt(m.fundsM)+'</b></div>'
+    +'<div class="sum-kpi"><span>باقی‌مانده پس از تخصیص‌ها</span><b class="num"'
+    +(m.rest<0?' style="color:var(--danger)"':'')+'>'+(m.rest<0?'− ':'')+fmt(Math.abs(m.rest))+'</b></div>'
+    +'</div><div class="sum-donut"><svg id="sum-donut" width="116" height="116" viewBox="0 0 160 160"></svg>'
+    +'<div class="sum-legend num">سهم سبدها از درآمد</div></div></div>'
+    +'<h3>دسته‌بندی ۱۲گانه هزینه‌ها</h3>'
+    +'<table><thead><tr><th>دسته</th><th>سبد</th><th>بودجه ماهانه</th><th>٪ از درآمد</th></tr></thead><tbody>'+rows+'</tbody></table>'
+    +'<h3>صندوق‌های دوره‌ای (سالانه تقسیم بر ۱۲)</h3>'
+    +'<table><thead><tr><th>صندوق</th><th>هدف سالانه</th><th>سهم ماهانه</th></tr></thead><tbody>'+frows+'</tbody></table>'
+    +'<div class="sum-grid">'
+    +'<div><h3>صندوق اضطراری</h3><table><tbody>'
+    +'<tr><th>هزینه ضروری ماهانه</th><td class="num">'+fmt(m.ess)+'</td></tr>'
+    +'<tr><th>هدف ('+faNum.format(state.em.months)+' ماه پوشش)</th><td class="num">'+fmt(m.target)+'</td></tr>'
+    +'<tr><th>موجودی فعلی</th><td class="num">'+fmt(m.bal)+'</td></tr>'
+    +'<tr><th>کسری تا هدف</th><td class="num">'+fmt(m.deficit)+'</td></tr>'
+    +'<tr><th>درصد تکمیل</th><td class="num">'+fmtP(m.emPct/100)+'</td></tr>'
+    +'</tbody></table></div>'
+    +'<div><h3>الگوی ۵۰/۳۰/۲۰ در برابر واقعی</h3>'
+    +'<table><thead><tr><th>سبد</th><th>الگوی شما</th><th>تخصیص واقعی</th></tr></thead><tbody>'+crows+'</tbody></table></div>'
+    +'</div>'
+    +'<h3>هفت گام تخصیص درآمد</h3>'
+    +'<table><tbody>'+srows+'</tbody></table>'
+    +'<p class="sum-inv">سرمایه‌ای که بدون فشار می‌تواند وارد بازار شود: <b class="num">'+fmt(avail)+'</b> '+cur
+    +' — یعنی کل پس‌انداز منهای صندوق‌های دوره‌ای منهای ذخیره اضطراری.</p>'
+    +'<p class="sum-foot">این برگه برای آموزش و برنامه‌ریزی شخصی است · سیستم بودجه شخصی — تک‌نفره</p>';
+  $('#print-summary').innerHTML=h;
+  drawDonut(document.getElementById('sum-donut'),[
+    {v:m.needs,c:BUCKETS.needs.color},
+    {v:m.wants,c:BUCKETS.wants.color},
+    {v:m.saving,c:BUCKETS.savings.color},
+    {v:Math.max(0,m.inc-m.total),c:'#c8d4d1'}
+  ]);
+}
+
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init);
+else init();
+</script>
+</body>
+</html>
