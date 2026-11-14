@@ -785,6 +785,7 @@ try{
     if(typeof state.catMeta!=='object'||!state.catMeta) state.catMeta={};
   }
 }catch(e){/* داده خراب؛ همان پیش‌فرض */}
+migrateUnits();
 
 /* ────────────── پشتیبان‌گیری، بازیابی و انتقال داده ────────────── */
 function mergeImported(obj){
@@ -793,6 +794,7 @@ function mergeImported(obj){
   for(var k in obj){if(obj[k]!==undefined&&obj[k]!==null)state[k]=obj[k];}
   CATS.forEach(function(c){if(typeof state.cats[c.id]!=='number')state.cats[c.id]=0;});
   if(typeof state.catMeta!=='object'||!state.catMeta)state.catMeta={};
+  migrateUnits(); /* پشتیبان‌های قدیمی (ریالی بدون نشانگر) هم یک‌باره تبدیل شوند */
   try{localStorage.setItem(LS_KEY,JSON.stringify(state));}catch(e){}
   return true;
 }
@@ -876,6 +878,38 @@ function fmtC(n){ return fmt(n)+' <span class="unit">'+CUR[state.currency]+'</sp
 function catName(c){ var m=(state.catMeta||{})[c.id]; return (m&&typeof m.name==='string'&&m.name)?m.name:c.name; }
 function catItems(c){ var m=(state.catMeta||{})[c.id]; return (m&&typeof m.items==='string'&&m.items)?m.items:c.items; }
 function catById(id){ for(var i=0;i<CATS.length;i++){ if(CATS[i].id===id) return CATS[i]; } return null; }
+
+/* مقیاس‌کردن همه مبالغ (ضرب در k) — برای تبدیل تومان↔ریال (۱ تومان = ۱۰ ریال) */
+function scaleAmounts(k){
+  state.income=Math.round((+state.income||0)*k);
+  CATS.forEach(function(c){ state.cats[c.id]=Math.round((+state.cats[c.id]||0)*k); });
+  (state.funds||[]).forEach(function(f){ f.annual=Math.round((+f.annual||0)*k); });
+  state.em.manual=Math.round((+state.em.manual||0)*k);
+  state.em.balance=Math.round((+state.em.balance||0)*k);
+  state.invTotal=Math.round((+state.invTotal||0)*k);
+  state.invFundsAcc=Math.round((+state.invFundsAcc||0)*k);
+}
+/* مهاجرت یک‌باره: داده‌های نسخهٔ قبل که ریالی وارد شده بودند ولی برچسب تومان داشتند → ÷۱۰ */
+function migrateUnits(){
+  if(state.unitConv)return;
+  state.unitConv=1;
+  if(state.currency==='toman') scaleAmounts(0.1);
+  save();
+}
+/* بازنویسی مقدار نمایشی ورودی‌های مبلغ پس از تبدیل واحد */
+function refreshAmountInputs(){
+  var set=function(el,v){ if(!el)return; el.value=v>0?faNum.format(v):''; };
+  set($('#income-in'),+state.income||0);
+  $$('[data-cat]').forEach(function(el){ set(el,+state.cats[el.dataset.cat]||0); });
+  $$('.fund-row').forEach(function(row){
+    var f=(state.funds||[]).filter(function(x){return x.id===row.dataset.fid;})[0];
+    if(f) set(row.querySelector('.f-annual'),+f.annual||0);
+  });
+  set($('#em-manual'),+state.em.manual||0);
+  set($('#em-bal'),+state.em.balance||0);
+  set($('#inv-total'),+state.invTotal||0);
+  set($('#inv-fundsacc'),+state.invFundsAcc||0);
+}
 
 function buildCats(){
   var g=$('#cats-grid'); var h='';
@@ -1242,17 +1276,24 @@ function init(){
     if(t) t.click();
   }
 
-  /* واحد پول */
+  /* واحد پول — جابه‌جایی تومان↔ریال مقادیر را هم تبدیل می‌کند (×۱۰/÷۱۰)؛ دلار فقط برچسب است */
   $$('#cur-seg button').forEach(function(b){
     b.addEventListener('click',function(){
+      var next=b.dataset.cur;
+      if(next===state.currency)return;
+      var prev=state.currency;
       $$('#cur-seg button').forEach(function(x){x.classList.remove('on');});
       b.classList.add('on');
-      state.currency=b.dataset.cur;
+      state.currency=next;
+      if((prev==='toman'&&next==='rial')||(prev==='rial'&&next==='toman')){
+        scaleAmounts(next==='rial'?10:0.1);
+        refreshAmountInputs();
+        showToast('✓ مبالغ به '+CUR[next]+' تبدیل شد ('+(next==='rial'?'×۱۰':'÷۱۰')+')');
+      }
       updateAll();
     });
   });
-  var curBtn=document.querySelector('#cur-seg button[data-cur="'+state.currency+'"]');
-  if(curBtn) curBtn.click();
+  $$('#cur-seg button').forEach(function(x){ x.classList.toggle('on',x.dataset.cur===state.currency); });
 
   /* درآمد */
   bindAmountInput($('#income-in'),function(){return state.income;},function(v){state.income=v;});
