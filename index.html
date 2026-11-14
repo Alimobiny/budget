@@ -95,6 +95,7 @@ main{padding:26px 0 10px}
   background:transparent;color:var(--ink);text-align:right;
 }
 .amt .unit{color:var(--muted);font-size:.82rem;white-space:nowrap}
+.unit{color:var(--muted);font-weight:400;font-size:.85em;white-space:nowrap}
 .amt.lg input{font-size:1.3rem}
 
 /* شاخص‌ها */
@@ -114,8 +115,20 @@ main{padding:26px 0 10px}
 .cat-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;box-shadow:var(--sh);position:relative}
 .cat-card .head{display:flex;align-items:flex-start;gap:10px}
 .cat-card .ico{font-size:1.5rem;line-height:1.2}
-.cat-card .name{font-weight:700;font-size:.98rem}
-.cat-card .items{font-size:.78rem;color:var(--muted);margin:2px 0 10px;min-height:2.2em}
+.cat-card .name{display:flex;align-items:center;gap:6px;font-weight:700;font-size:.98rem}
+.cat-card .name .c-name{
+  flex:1;min-width:0;border:1px solid var(--line);border-radius:8px;padding:2px 8px;
+  font:inherit;font-weight:700;font-size:.98rem;background:#fff;outline:0;
+  color:var(--ink);text-align:right;transition:.15s;
+}
+.cat-card .name .c-name:focus{border-color:var(--primary)}
+.cat-card .c-items{
+  display:block;width:100%;min-height:2.2em;margin:3px 0 10px;
+  border:1px solid var(--line);border-radius:8px;padding:2px 8px;
+  font:inherit;font-size:.78rem;color:var(--muted);background:#fff;outline:0;
+  text-align:right;transition:.15s;
+}
+.cat-card .c-items:focus{border-color:var(--primary)}
 .bchip{
   font-size:.7rem;padding:1px 10px;border-radius:999px;white-space:nowrap;
 }
@@ -618,7 +631,7 @@ footer{border-top:1px solid var(--line);margin-top:26px;padding:18px 0 26px;colo
           <span id="zero-chip"></span>
         </div>
         <div class="bar" style="max-width:280px"><i id="steps-bar" style="width:0%"></i></div>
-        <p class="hint" style="margin-top:8px">در گام‌ها، دسته ۹ (مخارج دوره‌ای) با جمع صندوق‌های بخش ۳ نمایندگی می‌شود تا چیزی دو بار حساب نشود.</p>
+        <p class="hint" style="margin-top:8px">در گام‌ها، دسته ۹ (<span id="cat9-ref">مخارج دوره‌ای</span>) با جمع صندوق‌های بخش ۳ نمایندگی می‌شود تا چیزی دو بار حساب نشود.</p>
       </div>
     </div>
   </section>
@@ -755,7 +768,7 @@ var CUR={toman:'تومان',rial:'ریال',dollar:'دلار'};
 function defaultState(){
   var cats={}; CATS.forEach(function(c){cats[c.id]=0;});
   return {
-    currency:'toman',income:0,cats:cats,funds:JSON.parse(JSON.stringify(DEFAULT_FUNDS)),
+    currency:'toman',income:0,cats:cats,catMeta:{},funds:JSON.parse(JSON.stringify(DEFAULT_FUNDS)),
     nextFund:7,em:{months:6,balance:0,auto:true,manual:0},
     rule:{needs:50,wants:30,savings:20},approach:'conservative',
     steps:{},invTotal:0,invFundsAcc:0,tab:'dash',accSel:'current'
@@ -769,6 +782,7 @@ try{
     /* ادغام محتاطانه با پیش‌فرض‌ها برای سازگاری نسخه‌ها */
     for(var k in s){ if(s[k]!==undefined&&s[k]!==null) state[k]=s[k]; }
     CATS.forEach(function(c){ if(typeof state.cats[c.id]!=='number') state.cats[c.id]=0; });
+    if(typeof state.catMeta!=='object'||!state.catMeta) state.catMeta={};
   }
 }catch(e){/* داده خراب؛ همان پیش‌فرض */}
 
@@ -778,6 +792,7 @@ function mergeImported(obj){
   state=defaultState();
   for(var k in obj){if(obj[k]!==undefined&&obj[k]!==null)state[k]=obj[k];}
   CATS.forEach(function(c){if(typeof state.cats[c.id]!=='number')state.cats[c.id]=0;});
+  if(typeof state.catMeta!=='object'||!state.catMeta)state.catMeta={};
   try{localStorage.setItem(LS_KEY,JSON.stringify(state));}catch(e){}
   return true;
 }
@@ -855,14 +870,22 @@ var $$=function(s){return Array.prototype.slice.call(document.querySelectorAll(s
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
+/* مبلغ قالب‌بندی‌شده همراه با واحد پول انتخابی */
+function fmtC(n){ return fmt(n)+' <span class="unit">'+CUR[state.currency]+'</span>'; }
+/* نام/شرح مؤثر دسته — از ویرایش کاربر یا پیش‌فرض CATS */
+function catName(c){ var m=(state.catMeta||{})[c.id]; return (m&&typeof m.name==='string'&&m.name)?m.name:c.name; }
+function catItems(c){ var m=(state.catMeta||{})[c.id]; return (m&&typeof m.items==='string'&&m.items)?m.items:c.items; }
+function catById(id){ for(var i=0;i<CATS.length;i++){ if(CATS[i].id===id) return CATS[i]; } return null; }
+
 function buildCats(){
   var g=$('#cats-grid'); var h='';
   CATS.forEach(function(c){
     var b=BUCKETS[c.bucket];
-    h+='<div class="cat-card">'
+    h+='<div class="cat-card" data-cid="'+c.id+'">'
       +'<div class="head"><span class="ico">'+c.icon+'</span><div style="flex:1">'
-      +'<div class="name">'+c.name+' <span class="bchip b-'+c.bucket+'">'+b.label+'</span></div>'
-      +'<div class="items">'+c.items+'</div></div></div>'
+      +'<div class="name"><input class="c-name" type="text" value="'+esc(catName(c))+'" placeholder="نام دسته" aria-label="نام دسته"> <span class="bchip b-'+c.bucket+'">'+b.label+'</span></div>'
+      +'<input class="c-items" type="text" value="'+esc(catItems(c))+'" placeholder="شرح دسته" aria-label="شرح دسته">'
+      +'</div></div>'
       +'<label class="amt"><input type="text" inputmode="numeric" data-cat="'+c.id+'" placeholder="'+c.ph+'"><span class="unit">'+CUR[state.currency]+'</span></label>'
       +'<div class="pct-line" data-pctcat="'+c.id+'"></div>'
       +'</div>';
@@ -976,48 +999,48 @@ function updateAll(){
   $$('.unit').forEach(function(u){u.textContent=cur;});
 
   /* بخش شروع */
-  $('#k-inc').textContent=fmt(m.inc);
-  $('#k-cats').textContent=fmt(m.total);
+  $('#k-inc').innerHTML=fmtC(m.inc);
+  $('#k-cats').innerHTML=fmtC(m.total);
   $('#k-cats-s').textContent=m.inc>0?('درصد درآمد: '+fmtP(m.total/m.inc)):'هنوز دسته‌ای پر نشده';
-  $('#k-funds').textContent=fmt(m.fundsM);
+  $('#k-funds').innerHTML=fmtC(m.fundsM);
   var kr=$('#k-rest');
-  kr.textContent=(m.rest<0?'− ':'')+fmt(Math.abs(m.rest));
+  kr.innerHTML=(m.rest<0?'− ':'')+fmtC(Math.abs(m.rest));
   kr.className='v num '+(m.rest<0?'neg':(m.rest>0?'pos':''));
   $('#k-rest-s').textContent=m.rest<0?'بودجه‌ها از درآمد بیشترند!':(m.rest>0?'برای گام تفریح باقی می‌ماند':'تخصیص صفرمبنایی کامل');
 
   /* دسته‌ها */
   $$('[data-out]').forEach(function(el){
     var k=el.dataset.out;
-    if(k==='sum')el.textContent=fmt(m.total);
-    else if(k==='needs')el.textContent=fmt(m.needs);
-    else if(k==='wants')el.textContent=fmt(m.wants);
-    else if(k==='saving')el.textContent=fmt(m.saving);
+    if(k==='sum')el.innerHTML=fmtC(m.total);
+    else if(k==='needs')el.innerHTML=fmtC(m.needs);
+    else if(k==='wants')el.innerHTML=fmtC(m.wants);
+    else if(k==='saving')el.innerHTML=fmtC(m.saving);
     else if(k==='sumPct')el.textContent=m.inc>0?fmtP(m.total/m.inc):'—';
-    else if(k==='restCats')el.textContent=m.inc>0?((m.inc-m.total<0?'− ':'')+fmt(Math.abs(m.inc-m.total))):'—';
+    else if(k==='restCats')el.innerHTML=m.inc>0?((m.inc-m.total<0?'− ':'')+fmtC(Math.abs(m.inc-m.total))):'—';
     else if(k==='fundsCount')el.textContent=fmt((state.funds||[]).length);
-    else if(k==='fundsM')el.textContent=fmt(m.fundsM);
-    else if(k==='fundsY')el.textContent=fmt(m.fundsY);
-    else if(k==='emEss')el.textContent=fmt(m.ess);
+    else if(k==='fundsM')el.innerHTML=fmtC(m.fundsM);
+    else if(k==='fundsY')el.innerHTML=fmtC(m.fundsY);
+    else if(k==='emEss')el.textContent=fmt(m.ess); /* واحد، کنار عنصر است */
     else if(k==='emMonths')el.textContent=faNum.format(state.em.months)+' ماه';
-    else if(k==='emTarget')el.innerHTML=fmt(m.target)+' <span class="unit">'+cur+'</span>';
+    else if(k==='emTarget')el.innerHTML=fmtC(m.target);
     else if(k==='emPct')el.textContent=fmtP(m.emPct/100);
-    else if(k==='emDef')el.textContent=fmt(m.deficit);
-    else if(k==='donutInc')el.textContent=fmt(m.inc);
-    else if(k==='lgNeeds')el.textContent=fmt(m.needs);
-    else if(k==='lgWants')el.textContent=fmt(m.wants);
-    else if(k==='lgSaving')el.textContent=fmt(m.saving);
-    else if(k==='lgRest')el.textContent=fmt(Math.max(0,m.inc-m.total));
+    else if(k==='emDef')el.innerHTML=fmtC(m.deficit);
+    else if(k==='donutInc')el.innerHTML=fmtC(m.inc);
+    else if(k==='lgNeeds')el.innerHTML=fmtC(m.needs);
+    else if(k==='lgWants')el.innerHTML=fmtC(m.wants);
+    else if(k==='lgSaving')el.innerHTML=fmtC(m.saving);
+    else if(k==='lgRest')el.innerHTML=fmtC(Math.max(0,m.inc-m.total));
     else if(k==='stepsDone'){
       var d=STEPS.filter(function(s){return state.steps[s.id];}).length;
       el.textContent=faNum.format(d)+' از ۷';
       $('#steps-bar').style.width=(d/7*100)+'%';
     }
-    else if(k==='stepsSum')el.textContent=fmt(m.committed);
+    else if(k==='stepsSum')el.innerHTML=fmtC(m.committed);
     else if(k==='restFinal'){
-      el.textContent=(m.rest<0?'− ':'')+fmt(Math.abs(m.rest));
+      el.innerHTML=(m.rest<0?'− ':'')+fmtC(Math.abs(m.rest));
       el.style.color=m.rest<0?'var(--danger)':'var(--primary)';
     }
-    else if(k==='invAvail')el.textContent=fmt(Math.max(0,(+state.invTotal||0)-(+state.invFundsAcc||0)-m.bal));
+    else if(k==='invAvail')el.textContent=fmt(Math.max(0,(+state.invTotal||0)-(+state.invFundsAcc||0)-m.bal)); /* واحد، کنار عنصر است */
   });
 
   /* درصد هر دسته از درآمد */
@@ -1029,16 +1052,20 @@ function updateAll(){
   /* صندوق‌ها */
   (state.funds||[]).forEach(function(f){
     var row=document.querySelector('.fund-row[data-fid="'+f.id+'"]');
-    if(row) row.querySelector('[data-fm]').textContent=fmt((+f.annual||0)/12);
+    if(row) row.querySelector('[data-fm]').innerHTML=fmtC((+f.annual||0)/12);
   });
   var fmWrap=$('#funds-match');
   var cat9=+state.cats['periodic']||0;
+  var cat9Name=catName(catById('periodic'));
   if(cat9>0||m.fundsM>0){
     var ok=Math.abs(m.fundsM-cat9)<1;
     fmWrap.innerHTML=ok
       ?'<span class="okchip">✓ هماهنگ — جمع سهم ماهانه صندوق‌ها با بودجه دسته ۹ برابر است</span>'
-      :'<span class="warnchip">پیشنهاد: جمع سهم ماهانه صندوق‌ها ('+fmt(m.fundsM)+') را با بودجه دسته ۹ «مخارج دوره‌ای» ('+fmt(cat9)+') هماهنگ کنید</span>';
+      :'<span class="warnchip">پیشنهاد: جمع سهم ماهانه صندوق‌ها ('+fmt(m.fundsM)+' '+cur+') را با بودجه دسته ۹ «'+esc(cat9Name)+'» ('+fmt(cat9)+' '+cur+') هماهنگ کنید</span>';
   } else fmWrap.innerHTML='';
+  /* ارجاع نام دسته ۹ در راهنمای گام‌ها */
+  var r9=$('#cat9-ref');
+  if(r9) r9.textContent=cat9Name;
 
   /* صندوق اضطراری */
   $('#em-bar').style.width=m.emPct+'%';
@@ -1055,7 +1082,7 @@ function updateAll(){
     var p=document.querySelector('[data-rulepct="'+k+'"]');
     if(p) p.textContent=faNum.format(state.rule[k])+'٪';
     var a=document.querySelector('[data-ruleamt="'+k+'"]');
-    if(a) a.textContent=fmt(m.inc*state.rule[k]/100);
+    if(a) a.innerHTML=fmtC(m.inc*state.rule[k]/100);
   });
   drawDonut([
     {v:m.needs,c:BUCKETS.needs.color},
@@ -1071,8 +1098,8 @@ function updateAll(){
     var cls=d>0.5?'pos':(d<-0.5?'neg':'zero');
     var sign=d>0.5?'+':(d<-0.5?'−':'±');
     h+='<tr><td><span class="dot"><i style="background:'+BUCKETS[k].color+'"></i></span> '+p[1]+'</td>'
-      +'<td class="num">'+faNum.format(rp)+'٪ · '+fmt(m.inc*rp/100)+'</td>'
-      +'<td class="num">'+(m.inc>0?(faNum.format(Math.round(actual))+'٪ · '+fmt(k==='needs'?m.needs:(k==='wants'?m.wants:m.saving))):'—')+'</td>'
+      +'<td class="num">'+faNum.format(rp)+'٪ · '+fmt(m.inc*rp/100)+' <span class="unit">'+cur+'</span></td>'
+      +'<td class="num">'+(m.inc>0?(faNum.format(Math.round(actual))+'٪ · '+fmt(k==='needs'?m.needs:(k==='wants'?m.wants:m.saving))+' <span class="unit">'+cur+'</span>'):'—')+'</td>'
       +'<td><span class="delta '+cls+'">'+sign+' '+faNum.format(Math.abs(Math.round(d)))+'٪</span></td></tr>';
   });
   cb.innerHTML=h;
@@ -1084,7 +1111,7 @@ function updateAll(){
   /* گام‌ها */
   var amounts={s1:m.inc,s2:m.debt,s3:m.essNoDebt,s4:m.fundsM,s5:m.deficit,s6:m.invest,s7:m.rest};
   var subs={
-    s5:m.target>0?('هدف '+fmt(m.target)+' · موجودی '+fmt(m.bal)):'',
+    s5:m.target>0?('هدف '+fmt(m.target)+' '+cur+' · موجودی '+fmt(m.bal)+' '+cur):'',
     s7:m.rest<0?'بیش از درآمد بودجه‌بندی کرده‌اید':''
   };
   STEPS.forEach(function(s){
@@ -1102,9 +1129,9 @@ function updateAll(){
   var zc=$('#zero-chip');
   zc.innerHTML=m.inc>0
     ?(Math.abs(m.rest)<1
-      ?'<span class="okchip">✓ تخصیص صفرمبنایی: هر تومان جای مشخصی دارد</span>'
-      :(m.rest>0?'<span class="warnchip">'+fmt(m.rest)+' هنوز تخصیص نیافته است</span>'
-                :'<span class="delta neg">کسری '+fmt(Math.abs(m.rest))+' — بودجه را جمع کنید</span>'))
+      ?'<span class="okchip">✓ تخصیص صفرمبنایی: هر '+cur+' جای مشخصی دارد</span>'
+      :(m.rest>0?'<span class="warnchip">'+fmt(m.rest)+' '+cur+' هنوز تخصیص نیافته است</span>'
+                :'<span class="delta neg">کسری '+fmt(Math.abs(m.rest))+' '+cur+' — بودجه را جمع کنید</span>'))
     :'';
 
   renderDash(m);
@@ -1118,19 +1145,19 @@ var DASH_NAV=[
 ];
 function renderDash(m){
   var cur=CUR[state.currency];
-  $('#d-inc').textContent=fmt(m.inc);
-  $('#d-total').textContent=fmt(m.total);
+  $('#d-inc').innerHTML=fmtC(m.inc);
+  $('#d-total').innerHTML=fmtC(m.total);
   $('#d-total-s').textContent=m.inc>0?('درصد درآمد: '+fmtP(m.total/m.inc)):'—';
-  $('#d-funds').textContent=fmt(m.fundsM);
+  $('#d-funds').innerHTML=fmtC(m.fundsM);
   var r=$('#d-rest');
-  r.textContent=(m.rest<0?'− ':'')+fmt(Math.abs(m.rest));
+  r.innerHTML=(m.rest<0?'− ':'')+fmtC(Math.abs(m.rest));
   r.className='v num '+(m.rest<0?'neg':(m.rest>0?'pos':''));
   $('#d-rest-s').textContent=m.rest<0?'بودجه‌ها از درآمد بیشترند!':(m.rest>0?'برای تفریح و اختیاری':'تخصیص صفرمبنایی کامل');
-  $('#d-donut-inc').textContent=fmt(m.inc);
-  $('#d-lg-needs').textContent=fmt(m.needs);
-  $('#d-lg-wants').textContent=fmt(m.wants);
-  $('#d-lg-save').textContent=fmt(m.saving);
-  $('#d-lg-rest').textContent=fmt(Math.max(0,m.inc-m.total));
+  $('#d-donut-inc').innerHTML=fmtC(m.inc);
+  $('#d-lg-needs').innerHTML=fmtC(m.needs);
+  $('#d-lg-wants').innerHTML=fmtC(m.wants);
+  $('#d-lg-save').innerHTML=fmtC(m.saving);
+  $('#d-lg-rest').innerHTML=fmtC(Math.max(0,m.inc-m.total));
   drawDonut(document.getElementById('dash-donut'),[
     {v:m.needs,c:BUCKETS.needs.color},
     {v:m.wants,c:BUCKETS.wants.color},
@@ -1138,26 +1165,26 @@ function renderDash(m){
     {v:Math.max(0,m.inc-m.total),c:'#c8d4d1'}
   ]);
   $('#d-em-months').textContent=faNum.format(state.em.months);
-  $('#d-em-target').textContent=fmt(m.target);
+  $('#d-em-target').innerHTML=fmtC(m.target);
   $('#d-em-bar').style.width=m.emPct+'%';
   $('#d-em-pct').textContent=fmtP(m.emPct/100);
-  $('#d-em-bal').textContent=fmt(m.bal);
-  $('#d-em-def').textContent=fmt(m.deficit);
-  $('#d-em-ess').textContent=fmt(m.ess);
+  $('#d-em-bal').innerHTML=fmtC(m.bal);
+  $('#d-em-def').innerHTML=fmtC(m.deficit);
+  $('#d-em-ess').innerHTML=fmtC(m.ess);
   var fb='';
   (state.funds||[]).forEach(function(f){
-    fb+='<tr><td>'+esc(f.name)+'</td><td class="num">'+fmt((+f.annual||0)/12)+'</td></tr>';
+    fb+='<tr><td>'+esc(f.name)+'</td><td class="num">'+fmtC((+f.annual||0)/12)+'</td></tr>';
   });
   if(!fb)fb='<tr><td colspan="2" class="hint">هنوز صندوقی تعریف نشده است</td></tr>';
   $('#d-funds-body').innerHTML=fb;
-  $('#d-funds-sum').textContent=fmt(m.fundsM)+' '+cur;
+  $('#d-funds-sum').innerHTML=fmtC(m.fundsM);
   var cb='';
   [['needs','نیازها'],['wants','خواسته‌ها'],['savings','پس‌انداز']].forEach(function(x){
     var v=x[0]==='needs'?m.needs:(x[0]==='wants'?m.wants:m.saving);
     var act=m.inc>0?v/m.inc*100:0;
     cb+='<tr><td><span class="dot"><i style="background:'+BUCKETS[x[0]].color+'"></i></span> '+x[1]+'</td>'
-      +'<td class="num">'+faNum.format(state.rule[x[0]])+'٪ · '+fmt(m.inc*state.rule[x[0]]/100)+'</td>'
-      +'<td class="num">'+(m.inc>0?faNum.format(Math.round(act))+'٪ · '+fmt(v):'—')+'</td></tr>';
+      +'<td class="num">'+faNum.format(state.rule[x[0]])+'٪ · '+fmt(m.inc*state.rule[x[0]]/100)+' <span class="unit">'+cur+'</span></td>'
+      +'<td class="num">'+(m.inc>0?faNum.format(Math.round(act))+'٪ · '+fmt(v)+' <span class="unit">'+cur+'</span>':'—')+'</td></tr>';
   });
   $('#d-cmp-body').innerHTML=cb;
   var amts={s1:m.inc,s2:m.debt,s3:m.essNoDebt,s4:m.fundsM,s5:m.deficit,s6:m.invest,s7:m.rest};
@@ -1166,7 +1193,7 @@ function renderDash(m){
     var v=amts[s.id]||0,neg=(s.id==='s7'&&v<0);
     sb+='<div style="display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px dashed var(--line);font-size:.88rem">'
       +'<span>'+(i+1)+'. '+s.t+'</span>'
-      +'<b class="num"'+(neg?' style="color:var(--danger)"':'')+'>'+(neg?'− ':'')+fmt(Math.abs(v))+'</b></div>';
+      +'<b class="num"'+(neg?' style="color:var(--danger)"':'')+'>'+(neg?'− ':'')+fmtC(Math.abs(v))+'</b></div>';
   });
   $('#d-steps').innerHTML=sb;
   var nv=$('#d-nav');
@@ -1233,6 +1260,20 @@ function init(){
   /* دسته‌ها */
   $$('[data-cat]').forEach(function(el){
     bindAmountInput(el,function(){return +state.cats[el.dataset.cat]||0;},function(v){state.cats[el.dataset.cat]=v;});
+  });
+  $$('[data-cid]').forEach(function(card){
+    var id=card.dataset.cid;
+    var nm=card.querySelector('.c-name'), it=card.querySelector('.c-items');
+    if(nm) nm.addEventListener('input',function(){
+      if(!state.catMeta[id]) state.catMeta[id]={};
+      state.catMeta[id].name=nm.value;
+      updateAll(); /* برای تازه‌شدن ارجاع‌های نام دسته */
+    });
+    if(it) it.addEventListener('input',function(){
+      if(!state.catMeta[id]) state.catMeta[id]={};
+      state.catMeta[id].items=it.value;
+      save();
+    });
   });
 
   /* صندوق‌ها */
@@ -1444,7 +1485,7 @@ function buildPrintSummary(){
 
   var rows='';
   CATS.forEach(function(cat){
-    rows+='<tr><td>'+cat.icon+' '+cat.name+'</td>'
+    rows+='<tr><td>'+cat.icon+' '+esc(catName(cat))+'</td>'
       +'<td><span class="dot"><i style="background:'+BUCKETS[cat.bucket].color+'"></i></span> '+BUCKETS[cat.bucket].label+'</td>'
       +'<td class="num">'+fmt(c(cat.id))+'</td><td class="num">'+pct(c(cat.id))+'</td></tr>';
   });
